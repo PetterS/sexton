@@ -62,6 +62,23 @@ class HexView(QtGui.QWidget):
 		self.data_line = line_number
 		self.repaint()
 
+	def set_cursor_position(self, pos):
+		self.cursor_line   = pos // self.line_width
+		self.cursor_column = pos %  self.line_width
+
+		# Is the cursor visible?
+		if self.is_cursor_visible():
+			# If the cursor is visible, the data line should not
+			# be altered.
+			pass
+		else:
+			# If the cursor is not visible, let it end up in the
+			# middle of the screen.
+			self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() / 2)
+
+		self.repaint()
+
+
 # PRIVATE METHODS
 
 	def dragEnterEvent(self, e):
@@ -229,6 +246,49 @@ class HexView(QtGui.QWidget):
 			self.move_cursor_page_down()
 		elif key == Qt.Key_PageUp:
 			self.move_cursor_page_up()
+		else:
+			return
+
+		invoke_in_main_thread(self.main_window.update_line, self.data_line)
+		self.repaint()
+
+	def xy_to_rowcol(self, x, y):
+		new_line = None
+		new_col  = None
+
+		for line in range(self.number_of_lines_on_screen()):
+			if line * self.line_height <= y and y <= (line + 1) * self.line_height:
+				new_line = line
+				break
+
+		for col in range(self.line_width):
+			if 180 + 25*col <= x and x <= 180 + 25*col + 20:
+				new_col = col
+				break
+			if 600 + col * self.character_width <= x and x <= 600 + (col + 1) * self.character_width:
+				new_col = col
+				break
+
+		if new_line and new_col:
+			new_line = self.data_line + new_line
+			# Is the new row and column valid?
+			new_pos = new_line * self.line_width + new_col
+			if new_pos >= self.data_buffer.length():
+				new_line = None
+				new_col  = None
+
+		return new_line, new_col
+
+	def mousePressEvent(self, event):
+		button = event.button()
+		x = event.x()
+		y = event.y()
+		if button == Qt.LeftButton:
+			line, col = self.xy_to_rowcol(x, y)
+
+			if line >= 0 and col >= 0:
+				self.cursor_line   = line
+				self.cursor_column = col
 		else:
 			return
 
