@@ -300,7 +300,7 @@ class HexView(QtGui.QWidget):
 class Main(PMainWindow):
 	def __init__(self):
 		PMainWindow.__init__(self, "hexeditor.ui", company_name, software_name)
-		self.setWindowTitle("Hex editor")
+		self.setWindowTitle("HyperEdit")
 
 		self.ui.view = HexView(self.ui.centralwidget, self)
 		self.ui.horizontalLayout.insertWidget(0,self.ui.view)
@@ -357,6 +357,10 @@ def main():
 	app = QtGui.QApplication(sys.argv)
 	window=Main()
 	window.show()
+
+	icon = QtGui.QIcon('images/icon.png')
+	app.setWindowIcon(icon)
+	window.setWindowIcon(icon)
 
 	sys.exit(app.exec_())
 
