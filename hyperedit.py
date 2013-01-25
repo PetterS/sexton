@@ -34,9 +34,13 @@ class HexView(QtGui.QWidget):
 		self.cursor_line   = 1
 		self.cursor_column = 3
 
+		self.selection_start = -1
+		self.selection_end = -1
+
 		self.cursor_color = QColor(255,0,0)
 		self.text_color   = QColor(0,0,0)
-		self.cursor_background_brush = QBrush(QColor(255,255,1))
+		self.cursor_background_brush    = QBrush(QColor(255,255,1))
+		self.selection_background_brush = QBrush(QColor(180,255,180))
 
 		# Accept key strokes.
 		self.setFocusPolicy(Qt.WheelFocus)
@@ -47,6 +51,10 @@ class HexView(QtGui.QWidget):
 		# How to report errors.
 		#invoke_in_main_thread(self.main_window.report_error, "PetterS", "Title")
 
+	def clear_selection(self):
+		self.selection_start = -1
+		self.selection_end   = -1
+
 	def open(self, data_buffer):
 		self.data_buffer = data_buffer
 
@@ -54,11 +62,11 @@ class HexView(QtGui.QWidget):
 		screen_height = self.height()
 		return int(screen_height / self.line_height)
 
-	def number_of_lines(self):
-		num_lines = self.data_buffer.length() // self.line_width
+	def number_of_rows(self):
+		num_rows = self.data_buffer.length() // self.line_width
 		if self.data_buffer.length() % self.line_width > 0:
-			num_lines += 1
-		return num_lines
+			num_rows += 1
+		return num_rows
 
 	def set_line(self, line_number):
 		self.data_line = line_number
@@ -98,24 +106,24 @@ class HexView(QtGui.QWidget):
 		painter = QtGui.QPainter(self)
 		painter.setRenderHint(QtGui.QPainter.Antialiasing)
 		painter.setFont(self.font)
-		painter.setBackground(self.cursor_background_brush)
 
 		if self.data_buffer:
 			# Number of lines that fit on screen.
-			num_lines = self.number_of_lines_on_screen()
+			num_rows = self.number_of_lines_on_screen()
 			view, length = self.data_buffer.read(self.line_width * self.data_line,
-			                                     self.line_width * num_lines)
+			                                     self.line_width * num_rows)
 
 			# Number of lines that are needed.
-			num_lines = length // self.line_width
+			num_rows = length // self.line_width
 			if length % self.line_width > 0:
-				num_lines += 1
+				num_rows += 1
 
-			for l in range(num_lines):
+			for l in range(num_rows):
 				line = self.data_line + l
 				position_string = '0x%016X' % (self.line_width * line)
 				painter.drawText(QPoint(5, (l + 1) * self.line_height), position_string)
 
+				global_offset = line * self.line_width
 				for i in range(min(self.line_width, length - self.line_width * l)):
 					text_string = '.'
 					byte = view[self.line_width * l + i]
@@ -127,6 +135,12 @@ class HexView(QtGui.QWidget):
 					if i == self.cursor_column and line == self.cursor_line:
 						painter.setPen(self.cursor_color)
 						painter.setBackgroundMode(Qt.OpaqueMode)
+						painter.setBackground(self.cursor_background_brush)
+					elif self.selection_start <= global_offset and \
+					     global_offset < self.selection_end:
+						painter.setBackground(self.selection_background_brush)
+						painter.setBackgroundMode(Qt.OpaqueMode)
+						byte_string += ' '
 
 					byte_string = byte_string
 					byte_point = QPoint(180 + 25*i, (l + 1) * self.line_height)
@@ -136,6 +150,8 @@ class HexView(QtGui.QWidget):
 
 					painter.setPen(self.text_color)
 					painter.setBackgroundMode(Qt.TransparentMode)
+
+					global_offset += 1
 
 	def is_cursor_visible(self):
 		if self.cursor_line >= self.data_line and \
@@ -214,7 +230,7 @@ class HexView(QtGui.QWidget):
 				# If the cursor is visible, its position in the screen should not
 				# be altered.
 				self.data_line += self.number_of_lines_on_screen()
-				self.data_line = min(self.number_of_lines(), self.data_line)
+				self.data_line = min(self.number_of_rows(), self.data_line)
 			else:
 				# If the cursor is invisible, let it end up in the middle of
 				# the screen.
@@ -232,7 +248,6 @@ class HexView(QtGui.QWidget):
 		pos += 1
 		if self.cursor_column < self.line_width - 1 and pos < self.data_buffer.length():
 			self.cursor_column += 1
-			self.repaint()
 
 	def keyPressEvent(self, event):
 		if not self.data_buffer:
@@ -254,10 +269,10 @@ class HexView(QtGui.QWidget):
 		else:
 			return
 
-		invoke_in_main_thread(self.main_window.update_line, self.data_line)
-		self.repaint()
+		self.main_window.update_line(self.data_line)
+		self.update()
 
-	def xy_to_rowcol(self, x, y):
+	def xy_to_linecol(self, x, y):
 		new_line = None
 		new_col  = None
 
@@ -292,16 +307,43 @@ class HexView(QtGui.QWidget):
 		x = event.x()
 		y = event.y()
 		if button == Qt.LeftButton:
-			line, col = self.xy_to_rowcol(x, y)
+			line, col = self.xy_to_linecol(x, y)
 
 			if line >= 0 and col >= 0:
 				self.cursor_line   = line
 				self.cursor_column = col
+		elif button == Qt.RightButton:
+			line, col = self.xy_to_linecol(x, y)
+
+			if line >= 0 and col >= 0:
+				cursor_pos = self.cursor_line * self.line_width + self.cursor_column
+				click_pos  = line * self.line_width + col
+				print cursor_pos, click_pos
+				if click_pos > cursor_pos:
+					self.selection_start = cursor_pos
+					self.selection_end   = click_pos + 1
+				elif click_pos < cursor_pos:
+					self.selection_start = click_pos
+					self.selection_end   = cursor_pos + 1
+				else:
+					self.selection_start = -1
+					self.selection_end   = -1
 		else:
 			return
 
-		invoke_in_main_thread(self.main_window.update_line, self.data_line)
-		self.repaint()
+		self.main_window.update_line(self.data_line)
+		self.update()
+
+	def wheelEvent(self, event):
+		lines_delta = - int(0.3 * event.delta() / self.line_height)
+		if lines_delta <= 0:
+			self.data_line = max(self.data_line + lines_delta, 0)
+		else:
+			self.data_line = min(self.data_line + lines_delta,
+			                     self.number_of_rows())
+
+		self.main_window.update_line(self.data_line)
+		self.update()
 #
 # MAIN WINDOW
 #
@@ -331,7 +373,7 @@ class Main(PMainWindow):
 
 		try:
 			self.ui.fileScrollBar.setMinimum(0)
-			self.ui.fileScrollBar.setMaximum(max(0, self.ui.view.number_of_lines() - 10))
+			self.ui.fileScrollBar.setMaximum(max(0, self.ui.view.number_of_rows() - 10))
 			self.ui.fileScrollBar.setPageStep(self.ui.view.number_of_lines_on_screen())
 			self.ui.fileScrollBar.setEnabled(True)
 		except OverflowError:
@@ -339,6 +381,8 @@ class Main(PMainWindow):
 			self.ui.fileScrollBar.setEnabled(False)
 
 		self.ui.view.repaint()
+
+		self.statusBar().showMessage('File size: {0}'.format(self.ui.view.data_buffer.length()))
 
 	@Slot()
 	@exception_handler
@@ -359,6 +403,10 @@ class Main(PMainWindow):
 			<p>Copyright © 2013 Petter Strandmark.
 			<p>PySide version %s - Qt version %s""" % (__version__,
 			PySide.__version__,  PySide.QtCore.__version__,))
+	@Slot()
+	@exception_handler
+	def on_actionClear_Selection_triggered(self):
+		self.ui.view.clear_selection()
 
 	@Slot()
 	@exception_handler
