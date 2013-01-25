@@ -32,8 +32,8 @@ class HexView(QtGui.QWidget):
 		self.line_width = 16
 		self.data_line = 0
 
-		self.cursor_line   = 1
-		self.cursor_column = 3
+		self.cursor_line   = 0
+		self.cursor_column = 0
 
 		self.selection_start = -1
 		self.selection_end = -1
@@ -58,6 +58,14 @@ class HexView(QtGui.QWidget):
 
 	def open(self, data_buffer):
 		self.data_buffer = data_buffer
+		if self.data_buffer.length() == 0:
+			self.data_buffer = None
+			raise RuntimeError('File is empty.')
+		# Is the cursor outside the file?
+		if self.cursor_line * self.line_width + self.cursor_column >= self.data_buffer.length():
+			self.set_cursor_position(self.data_buffer.length() - 1)
+
+		self.update()
 
 	def number_of_lines_on_screen(self):
 		screen_height = self.height()
@@ -71,7 +79,7 @@ class HexView(QtGui.QWidget):
 
 	def set_line(self, line_number):
 		self.data_line = line_number
-		self.repaint()
+		self.update()
 
 	def set_cursor_position(self, pos):
 		self.cursor_line   = pos // self.line_width
@@ -87,7 +95,7 @@ class HexView(QtGui.QWidget):
 			# middle of the screen.
 			self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() / 2)
 
-		self.repaint()
+		self.update()
 
 
 # PRIVATE METHODS
