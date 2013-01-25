@@ -4,6 +4,7 @@
 import sys
 
 # Import Qt modules
+import PySide
 from PySide import QtGui
 from PySide.QtCore import *
 from PySide.QtGui import *
@@ -15,6 +16,7 @@ from data_buffer import *
 # Used for saving settings (e.g. in the registry on Windows)
 company_name = 'Petter Strandmark'
 software_name = 'HyperEdit'
+__version__ = '4.0 alpha'
 
 class HexView(QtGui.QWidget):
 	def __init__(self, parent=None, main_window=None):
@@ -233,6 +235,9 @@ class HexView(QtGui.QWidget):
 			self.repaint()
 
 	def keyPressEvent(self, event):
+		if not self.data_buffer:
+			return
+
 		key = event.key()
 		if key == Qt.Key_Up:
 			self.move_cursor_up()
@@ -280,6 +285,9 @@ class HexView(QtGui.QWidget):
 		return new_line, new_col
 
 	def mousePressEvent(self, event):
+		if not self.data_buffer:
+			return
+
 		button = event.button()
 		x = event.x()
 		y = event.y()
@@ -342,6 +350,15 @@ class Main(PMainWindow):
 			dir, fname = os.path.split(file_name)
 			self.settings.setValue("default_dir", dir)
 			self.open_file(file_name)
+
+	@Slot()
+	@exception_handler
+	def on_actionAbout_triggered(self):
+		QMessageBox.about(self, "About HyperEdit",
+			u"""<b>HyperEdit</b> v %s
+			<p>Copyright © 2013 Petter Strandmark.
+			<p>PySide version %s - Qt version %s""" % (__version__,
+			PySide.__version__,  PySide.QtCore.__version__,))
 
 	@Slot()
 	@exception_handler

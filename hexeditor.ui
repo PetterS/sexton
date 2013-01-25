@@ -85,6 +85,9 @@
    </property>
   </action>
   <action name="actionCopy">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Copy</string>
    </property>
@@ -100,6 +103,9 @@
    </property>
   </action>
   <action name="actionFind_Replace">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Find/Replace...</string>
    </property>
