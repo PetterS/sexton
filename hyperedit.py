@@ -12,6 +12,7 @@ from PySide.QtGui import *
 from Petter.guihelper import invoke_in_main_thread, exception_handler, PMainWindow
 
 from data_buffer import *
+from find_and_replace import FindAndReplace
 
 # Used for saving settings (e.g. in the registry on Windows)
 company_name = 'Petter Strandmark'
@@ -289,7 +290,7 @@ class HexView(QtGui.QWidget):
 				new_col = col
 				break
 
-		if new_line and new_col:
+		if new_line is not None and new_col is not None:
 			new_line = self.data_line + new_line
 			# Is the new row and column valid?
 			new_pos = new_line * self.line_width + new_col
@@ -308,8 +309,7 @@ class HexView(QtGui.QWidget):
 		y = event.y()
 		if button == Qt.LeftButton:
 			line, col = self.xy_to_linecol(x, y)
-
-			if line >= 0 and col >= 0:
+			if line is not None and col is not None:
 				self.cursor_line   = line
 				self.cursor_column = col
 		elif button == Qt.RightButton:
@@ -357,16 +357,19 @@ class Main(PMainWindow):
 
 		self.ui.fileScrollBar.setEnabled(False)
 
+		self.find_and_replace = None
+
+	def closeEvent(self, event):
+		if self.find_and_replace:
+			self.find_and_replace.close()
+		PMainWindow.closeEvent(self, event)
+
 	def report_error(self, error, title="Error"):
 		 QtGui.QMessageBox.critical(self, title, error)
 
 	@exception_handler
 	def resizeEvent(self, event):
 		PMainWindow.resizeEvent(self, event)
-
-	def disableUI(self, disabled) :
-		pass
-
 
 	def open_file(self, file_name):
 		self.ui.view.open(FileBuffer(file_name))
@@ -407,6 +410,13 @@ class Main(PMainWindow):
 	@exception_handler
 	def on_actionClear_Selection_triggered(self):
 		self.ui.view.clear_selection()
+
+	@Slot()
+	@exception_handler
+	def on_actionFind_Replace_triggered(self):
+		if not self.find_and_replace:
+			self.find_and_replace = FindAndReplace(company_name, software_name)
+		self.find_and_replace.show()
 
 	@Slot()
 	@exception_handler
