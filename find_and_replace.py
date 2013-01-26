@@ -21,6 +21,10 @@ class FindAndReplace(QMainWindow):
 		self.setCentralWidget(self.ui)
 		QMetaObject.connectSlotsByName(self)
 
+		# Size constraints
+		self.setMinimumSize(self.ui.minimumSize())
+		self.setMaximumSize(self.ui.maximumSize())
+
 		# Read settings
 		self.settings = QSettings(company_name, software_name)
 		self.restoreGeometry(self.settings.value("FindAndReplace/geometry"))
@@ -83,6 +87,7 @@ class FindAndReplace(QMainWindow):
 			# Search in the bytes.
 			found_index = bytes.find(wanted_bytes)
 			if found_index >= 0:
+				# Set cursor position and selection to the found string.
 				self.view.set_cursor_position(current_pos + found_index)
 				self.view.set_selection(current_pos + found_index,
 				                        current_pos + found_index + len(wanted_bytes))

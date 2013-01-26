@@ -95,6 +95,7 @@ class HexView(QtGui.QWidget):
 			# middle of the screen.
 			self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() / 2)
 
+		self.main_window.update_line(self.data_line)
 		self.update()
 
 	def set_selection(self, start, end):
@@ -334,7 +335,7 @@ class HexView(QtGui.QWidget):
 			if line >= 0 and col >= 0:
 				cursor_pos = self.cursor_line * self.line_width + self.cursor_column
 				click_pos  = line * self.line_width + col
-				print cursor_pos, click_pos
+
 				if click_pos > cursor_pos:
 					self.selection_start = cursor_pos
 					self.selection_end   = click_pos + 1
@@ -390,6 +391,7 @@ class Main(PMainWindow):
 	def open_file(self, file_name):
 		self.ui.view.open(FileBuffer(file_name))
 
+		self.ui.fileScrollBar.setEnabled(True)
 		try:
 			self.ui.fileScrollBar.setMinimum(0)
 			self.ui.fileScrollBar.setMaximum(max(0, self.ui.view.number_of_rows() - 10))
@@ -437,13 +439,23 @@ class Main(PMainWindow):
 
 	@Slot()
 	@exception_handler
+	def on_actionExit_triggered(self):
+		self.close()
+
+	@Slot()
+	@exception_handler
 	def on_fileScrollBar_valueChanged(self):
 		self.ui.view.set_line(self.ui.fileScrollBar.value())
 
+	@exception_handler
 	def update_line(self, line):
-		if self.ui.fileScrollBar.isEnabled():
-			if self.ui.fileScrollBar.value() != line:
-				self.ui.fileScrollBar.setValue(line)
+		try:
+			if self.ui.fileScrollBar.isEnabled():
+				if self.ui.fileScrollBar.value() != line:
+					self.ui.fileScrollBar.setValue(line)
+		except OverflowError:
+			# File is so large we cannot use the scroll bar.
+			self.ui.fileScrollBar.setEnabled(False)
 
 def main():
 	app = QtGui.QApplication(sys.argv)
