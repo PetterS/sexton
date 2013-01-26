@@ -97,6 +97,14 @@ class HexView(QtGui.QWidget):
 
 		self.update()
 
+	def set_selection(self, start, end):
+		self.selection_start = start
+		self.selection_end = end
+		self.update()
+
+	def get_cursor_position(self):
+		return self.cursor_line * self.line_width + self.cursor_column
+
 
 # PRIVATE METHODS
 
@@ -423,7 +431,8 @@ class Main(PMainWindow):
 	@exception_handler
 	def on_actionFind_Replace_triggered(self):
 		if not self.find_and_replace:
-			self.find_and_replace = FindAndReplace(company_name, software_name)
+			self.find_and_replace = FindAndReplace(self, company_name, software_name)
+		self.find_and_replace.set_view(self.ui.view)
 		self.find_and_replace.show()
 
 	@Slot()

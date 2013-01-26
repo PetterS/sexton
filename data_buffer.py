@@ -25,6 +25,9 @@ class TestBuffer(DataBuffer):
 	def length(self):
 		return self.data_length
 
+	def max_read_length(self):
+		return 0
+
 	def flush(self):
 		pass
 
@@ -33,14 +36,14 @@ class FileBuffer(DataBuffer):
 
 	def __init__(self, file_name):
 		self.file_name = file_name
-		self.buffer_max_length = 2 * 1024
+		self.buffer_max_length = 512 * 1024
 		self.buffer = bytearray(self.buffer_max_length)
 		self.read_into_buffer(0)
 
 	def read_into_buffer(self, pos):
-		print "Reading file block: ", pos
+		#print "Reading file block: ", pos
 		self.file_size = os.path.getsize(self.file_name)
-		print "-- file size:", self.file_size
+		#print "-- file size:", self.file_size
 
 		# TODO: handle file size changes.
 
@@ -55,8 +58,7 @@ class FileBuffer(DataBuffer):
 			self.view = memoryview(self.buffer)
 			self.buffer_start = pos
 
-		print "-- buffer start:", self.buffer_start, " length:", self.buffer_length
-
+		#print "-- buffer start:", self.buffer_start, " length:", self.buffer_length
 
 	def read(self, pos, length):
 		# We cannot read past the end of the file.
@@ -64,7 +66,7 @@ class FileBuffer(DataBuffer):
 		# Is the requested interval outside the current buffer?
 		if pos < self.buffer_start or pos + read_length > self.buffer_start + self.buffer_length:
 			self.read_into_buffer(max(0, pos - self.buffer_max_length / 2))
-			print "-- Start in view:", pos - self.buffer_start
+			#print "-- Start in view:", pos - self.buffer_start
 			the_view = self.view[pos - self.buffer_start:]
 			return the_view, read_length
 		else:
