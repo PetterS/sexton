@@ -1,4 +1,5 @@
 
+import binascii
 import struct
 
 from PySide import QtUiTools
@@ -63,16 +64,40 @@ class DataTypes(QMainWindow):
 			format_string += 'f'
 		elif self.ui.doubleRadioButton.isChecked():
 			format_string += 'd'
+		else:
+			raise ValueError("No floating point type selected.")
 
 		return format_string
 
-	def update(self):
-		if not self.view:
-			return
-
-		data_view = self.view.data_at_position(self.view.get_cursor_position())
-
+	def get_format_string(self):
 		current_tab = self.ui.tabWidget.currentWidget()
+		format_string = None
+		if current_tab == self.ui.tab_integers:
+			format_string = self.get_integer_format_string()
+		elif current_tab == self.ui.tab_floating_point:
+			format_string = self.get_floating_point_format_string()
+		else:
+			raise ValueError("No number tab selected.")
+		return format_string
+
+	def set_hexEdit_bytes(self, bytes):
+		text = ''.join( [ "%02X " % ord( x ) for x in bytes ] ).strip()
+		self.ui.hexEdit.setText(text)
+
+	def set_bytes(self, bytes_or_view):
+		current_tab = self.ui.tabWidget.currentWidget()
+
+		if current_tab == self.ui.tab_integers or \
+		   current_tab == self.ui.tab_floating_point:
+			#Get the format string.
+			format_string = self.get_format_string()
+			# Compute how many bytes are needed.
+			size_needed = struct.calcsize(format_string)
+			# Extract the correct number of bytes if the
+			# input is a memoryview.
+			if isinstance(bytes_or_view, memoryview):
+				bytes_or_view = bytes_or_view[:size_needed].tobytes()
+
 		if current_tab == self.ui.tab_integers:
 			# Try and parse an integer.
 			self.ui.integerEdit.setEnabled(True)
@@ -80,11 +105,9 @@ class DataTypes(QMainWindow):
 			self.ui.littleEndianCheckBox.setEnabled(True)
 
 			number = None
-			format_string = self.get_integer_format_string()
 			try:
-				size_needed = struct.calcsize(format_string)
-				bytes = data_view[:size_needed].tobytes()
-				number = struct.unpack(format_string, bytes)[0]
+				assert(size_needed == len(bytes_or_view))
+				number = struct.unpack(format_string, bytes_or_view)[0]
 			except:
 				self.ui.integerEdit.setText("n/a")
 				self.ui.integerEdit.setEnabled(False)
@@ -93,6 +116,8 @@ class DataTypes(QMainWindow):
 
 			if number is not None:
 				self.ui.integerEdit.setText("%d" % number)
+				number_bytes = struct.pack(format_string, number)
+				self.set_hexEdit_bytes(number_bytes)
 
 		elif current_tab == self.ui.tab_floating_point:
 			# Try and parse a floating point.
@@ -100,11 +125,9 @@ class DataTypes(QMainWindow):
 			self.ui.littleEndianFloatingPointCheckBox.setEnabled(True)
 
 			number = None
-			format_string = self.get_floating_point_format_string()
 			try:
-				size_needed = struct.calcsize(format_string)
-				bytes = data_view[:size_needed].tobytes()
-				number = struct.unpack(format_string, bytes)[0]
+				assert(size_needed == len(bytes_or_view))
+				number = struct.unpack(format_string, bytes_or_view)[0]
 			except:
 				self.ui.floatingPointEdit.setText("n/a")
 				self.ui.floatingPointEdit.setEnabled(False)
@@ -112,9 +135,20 @@ class DataTypes(QMainWindow):
 
 			if number is not None:
 				self.ui.floatingPointEdit.setText("%e" % number)
+				number_bytes = struct.pack(format_string, number)
+				self.set_hexEdit_bytes(number_bytes)
+
 		elif current_tab == self.ui.tab_dates:
 			pass
 
+
+	def update(self):
+		if not self.view:
+			return
+		if not self.view.data_buffer:
+			return
+		data_view = self.view.data_at_position(self.view.get_cursor_position())
+		self.set_bytes(data_view)
 
 	def showEvent(self, event):
 		QMainWindow.showEvent(self, event)
@@ -125,11 +159,29 @@ class DataTypes(QMainWindow):
 
 	@Slot()
 	@exception_handler
+	def on_hexEdit_textEdited(self):
+		# Fires only when the text is edited by the user, not
+		# by the program.
+		try:
+			hex_string = self.ui.hexEdit.text().encode('utf-8')
+			hex_string = hex_string.replace(" ", "")
+			bytes = binascii.unhexlify(hex_string)
+		except:
+			bytes = ''
+		self.set_bytes(bytes)
+
+
+	@Slot()
+	@exception_handler
 	def on_changeButton_clicked(self):
 		pass
 
 
 
+	@Slot()
+	@exception_handler
+	def on_tabWidget_currentChanged(self):
+		self.update()
 
 	@Slot()
 	@exception_handler
@@ -154,12 +206,12 @@ class DataTypes(QMainWindow):
 	@Slot()
 	@exception_handler
 	def on_signedCheckBox_clicked(self):
-		self.update()
+		self.on_hexEdit_textEdited()
 
 	@Slot()
 	@exception_handler
 	def on_littleEndianCheckBox_clicked(self):
-		self.update()
+		self.on_hexEdit_textEdited()
 
 	@Slot()
 	@exception_handler
@@ -174,4 +226,4 @@ class DataTypes(QMainWindow):
 	@Slot()
 	@exception_handler
 	def on_littleEndianFloatingPointCheckBox_clicked(self):
-		self.update()
+		self.on_hexEdit_textEdited()

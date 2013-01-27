@@ -1,4 +1,5 @@
 
+import binascii
 from time import sleep
 
 from PySide import QtUiTools
@@ -59,20 +60,31 @@ class FindAndReplace(QMainWindow):
 		progress.setAutoReset(False)
 		progress.setMinimumDuration(400)
 
+		step_length = 100 * 1024
+		file_length = self.view.data_buffer.length()
+
 		current_pos = self.view.get_cursor_position()
 		# If the cursor is in the selection, start at the end of
 		# the selection (to find the next match).
 		if self.view.selection_start <= current_pos and \
 		   current_pos < self.view.selection_end:
-			current_pos = self.view.selection_end - 1
+			current_pos = self.view.selection_end
+			# This may have taken us beyond the file end;
+			# if so, start over.
+			if current_pos >= file_length:
+				current_pos = 0
 
 		start_pos = current_pos
-		step_length = 100 * 1024
-		file_length = self.view.data_buffer.length()
 		bytes_searched = 0
 
-		encoding = self.ui.encodingEdit.text()
-		wanted_bytes = self.ui.searchEdit.text().encode(encoding)
+		wanted_bytes = None
+		if self.ui.stringButton.isChecked():
+			encoding = self.ui.encodingEdit.text()
+			wanted_bytes = self.ui.searchEdit.text().encode(encoding)
+		elif self.ui.hexButton.isChecked():
+			hex_string = self.ui.searchEdit.text().encode('utf-8')
+			hex_string = hex_string.replace(" ", "")
+			wanted_bytes = binascii.unhexlify(hex_string)
 
 		wrapped_around = False
 		while(bytes_searched < file_length):
