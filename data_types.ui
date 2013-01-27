@@ -25,49 +25,100 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab_integers">
+     <widget class="QWidget" name="tab_numbers">
       <attribute name="title">
-       <string>Integers</string>
+       <string>Numbers</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
-          <string>Size</string>
+          <string>Type</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QRadioButton" name="eightBitRadioButton">
-            <property name="text">
-             <string>char</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="sixteenBitRadioButton">
-            <property name="text">
-             <string>short</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="thirtyTwoBitRadioButton">
-            <property name="text">
-             <string>int</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="sixtyFourBitRadioButton">
-            <property name="text">
-             <string>long long</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QRadioButton" name="eightBitRadioButton">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>23</y>
+            <width>44</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>char</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="sixteenBitRadioButton">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>46</y>
+            <width>48</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>short</string>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="thirtyTwoBitRadioButton">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>69</y>
+            <width>35</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>int</string>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="sixtyFourBitRadioButton">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>92</y>
+            <width>66</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>long long</string>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="singleRadioButton">
+          <property name="geometry">
+           <rect>
+            <x>120</x>
+            <y>23</y>
+            <width>347</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>float (single)</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="doubleRadioButton">
+          <property name="geometry">
+           <rect>
+            <x>120</x>
+            <y>50</y>
+            <width>347</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>double</string>
+          </property>
+         </widget>
         </widget>
        </item>
        <item>
@@ -76,6 +127,9 @@
           <layout class="QVBoxLayout" name="verticalLayout_7">
            <item>
             <widget class="QCheckBox" name="signedCheckBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
              <property name="text">
               <string>Signed</string>
              </property>
@@ -94,61 +148,7 @@
           </layout>
          </item>
          <item>
-          <widget class="QLineEdit" name="integerEdit">
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_floating_point">
-      <attribute name="title">
-       <string>Floating point</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_6">
-       <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Size</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <widget class="QRadioButton" name="singleRadioButton">
-            <property name="text">
-             <string>float (single)</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="doubleRadioButton">
-            <property name="text">
-             <string>double</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QCheckBox" name="littleEndianFloatingPointCheckBox">
-           <property name="text">
-            <string>Little-endian (x86, x86-64)</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="floatingPointEdit">
+          <widget class="QLineEdit" name="numberEdit">
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>

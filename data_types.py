@@ -34,7 +34,7 @@ class DataTypes(QMainWindow):
 	def set_view(self, view):
 		self.view = view
 
-	def get_integer_format_string(self):
+	def get_format_string(self):
 		if self.ui.littleEndianCheckBox.isChecked():
 			format_string = '<'
 		else:
@@ -42,43 +42,28 @@ class DataTypes(QMainWindow):
 
 		if self.ui.eightBitRadioButton.isChecked():
 			format_string += 'b'
+			printf_string = '%d'
 		elif self.ui.sixteenBitRadioButton.isChecked():
 			format_string += 'h'
+			printf_string = '%d'
 		elif self.ui.thirtyTwoBitRadioButton.isChecked():
 			format_string += 'i'
+			printf_string = '%d'
 		elif self.ui.sixtyFourBitRadioButton.isChecked():
 			format_string += 'q'
+			printf_string = '%d'
 
 		if not self.ui.signedCheckBox.isChecked():
 			format_string = format_string.upper()
 
-		return format_string
-
-	def get_floating_point_format_string(self):
-		if self.ui.littleEndianFloatingPointCheckBox.isChecked():
-			format_string = '<'
-		else:
-			format_string = '>'
-
 		if self.ui.singleRadioButton.isChecked():
 			format_string += 'f'
+			printf_string = '%e'
 		elif self.ui.doubleRadioButton.isChecked():
 			format_string += 'd'
-		else:
-			raise ValueError("No floating point type selected.")
+			printf_string = '%e'
 
-		return format_string
-
-	def get_format_string(self):
-		current_tab = self.ui.tabWidget.currentWidget()
-		format_string = None
-		if current_tab == self.ui.tab_integers:
-			format_string = self.get_integer_format_string()
-		elif current_tab == self.ui.tab_floating_point:
-			format_string = self.get_floating_point_format_string()
-		else:
-			raise ValueError("No number tab selected.")
-		return format_string
+		return format_string, printf_string
 
 	def set_hexEdit_bytes(self, bytes):
 		text = ''.join( [ "%02X " % ord( x ) for x in bytes ] ).strip()
@@ -87,10 +72,9 @@ class DataTypes(QMainWindow):
 	def set_bytes(self, bytes_or_view):
 		current_tab = self.ui.tabWidget.currentWidget()
 
-		if current_tab == self.ui.tab_integers or \
-		   current_tab == self.ui.tab_floating_point:
+		if current_tab == self.ui.tab_numbers:
 			#Get the format string.
-			format_string = self.get_format_string()
+			format_string, printf_string = self.get_format_string()
 			# Compute how many bytes are needed.
 			size_needed = struct.calcsize(format_string)
 			# Extract the correct number of bytes if the
@@ -98,10 +82,12 @@ class DataTypes(QMainWindow):
 			if isinstance(bytes_or_view, memoryview):
 				bytes_or_view = bytes_or_view[:size_needed].tobytes()
 
-		if current_tab == self.ui.tab_integers:
-			# Try and parse an integer.
-			self.ui.integerEdit.setEnabled(True)
-			self.ui.signedCheckBox.setEnabled(True)
+			# Try and parse a number.
+			self.ui.numberEdit.setEnabled(True)
+			if printf_string == '%d':
+				self.ui.signedCheckBox.setEnabled(True)
+			else:
+				self.ui.signedCheckBox.setEnabled(False)
 			self.ui.littleEndianCheckBox.setEnabled(True)
 
 			number = None
@@ -109,32 +95,13 @@ class DataTypes(QMainWindow):
 				assert(size_needed == len(bytes_or_view))
 				number = struct.unpack(format_string, bytes_or_view)[0]
 			except:
-				self.ui.integerEdit.setText("n/a")
-				self.ui.integerEdit.setEnabled(False)
+				self.ui.numberEdit.setText("n/a")
+				self.ui.numberEdit.setEnabled(False)
 				self.ui.signedCheckBox.setEnabled(False)
 				self.ui.littleEndianCheckBox.setEnabled(False)
 
 			if number is not None:
-				self.ui.integerEdit.setText("%d" % number)
-				number_bytes = struct.pack(format_string, number)
-				self.set_hexEdit_bytes(number_bytes)
-
-		elif current_tab == self.ui.tab_floating_point:
-			# Try and parse a floating point.
-			self.ui.floatingPointEdit.setEnabled(True)
-			self.ui.littleEndianFloatingPointCheckBox.setEnabled(True)
-
-			number = None
-			try:
-				assert(size_needed == len(bytes_or_view))
-				number = struct.unpack(format_string, bytes_or_view)[0]
-			except:
-				self.ui.floatingPointEdit.setText("n/a")
-				self.ui.floatingPointEdit.setEnabled(False)
-				self.ui.littleEndianFloatingPointCheckBox.setEnabled(False)
-
-			if number is not None:
-				self.ui.floatingPointEdit.setText("%e" % number)
+				self.ui.numberEdit.setText(printf_string % number)
 				number_bytes = struct.pack(format_string, number)
 				self.set_hexEdit_bytes(number_bytes)
 
@@ -170,13 +137,29 @@ class DataTypes(QMainWindow):
 			bytes = ''
 		self.set_bytes(bytes)
 
+	@Slot()
+	@exception_handler
+	def on_numberEdit_textEdited(self):
+		# Fires only when the text is edited by the user, not
+		# by the program.
+		number_string = self.ui.numberEdit.text().encode('utf-8')
+		format_string, printf_string = self.get_format_string()
+		try:
+			number = None
+			if printf_string == '%d':
+				number = int(number_string)
+			elif printf_string == '%e':
+				number = float(number_string)
+			bytes = struct.pack(format_string, number)
+		except ValueError:
+			bytes = ''
+		self.set_hexEdit_bytes(bytes)
+
 
 	@Slot()
 	@exception_handler
 	def on_changeButton_clicked(self):
 		pass
-
-
 
 	@Slot()
 	@exception_handler
