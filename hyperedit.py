@@ -12,6 +12,7 @@ from PySide.QtGui import *
 from Petter.guihelper import invoke_in_main_thread, exception_handler, PMainWindow
 
 from data_buffer import *
+from data_types import DataTypes
 from find_and_replace import FindAndReplace
 
 # Used for saving settings (e.g. in the registry on Windows)
@@ -34,6 +35,7 @@ class HexView(QtGui.QWidget):
 
 		self.cursor_line   = 0
 		self.cursor_column = 0
+		self.cursor_data_view = None
 
 		self.selection_start = -1
 		self.selection_end = -1
@@ -106,6 +108,9 @@ class HexView(QtGui.QWidget):
 	def get_cursor_position(self):
 		return self.cursor_line * self.line_width + self.cursor_column
 
+	def data_at_position(self, position, length = 10):
+		view, length = self.data_buffer.read(position, length)
+		return view
 
 # PRIVATE METHODS
 
@@ -147,10 +152,15 @@ class HexView(QtGui.QWidget):
 					byte = view[self.line_width * l + i]
 					num = ord(byte)
 					if num >= 32:
-						text_string = byte
+						try:
+							# TODO: allow user to change decoder.
+							text_string = byte.decode('cp1252')
+						except:
+							text_string = byte.decode('cp850')
 					byte_string = '%02X' % num
 
 					if i == self.cursor_column and line == self.cursor_line:
+						# We are at the data cursor; update the colors.
 						painter.setPen(self.cursor_color)
 						painter.setBackgroundMode(Qt.OpaqueMode)
 						painter.setBackground(self.cursor_background_brush)
@@ -375,10 +385,13 @@ class Main(PMainWindow):
 		self.ui.fileScrollBar.setEnabled(False)
 
 		self.find_and_replace = None
+		self.data_types = None
 
 	def closeEvent(self, event):
 		if self.find_and_replace:
 			self.find_and_replace.close()
+		if self.data_types:
+			self.data_types.close()
 		PMainWindow.closeEvent(self, event)
 
 	def report_error(self, error, title="Error"):
@@ -439,6 +452,15 @@ class Main(PMainWindow):
 
 	@Slot()
 	@exception_handler
+	def on_actionData_Types_triggered(self):
+		if not self.data_types:
+			self.data_types = DataTypes(self, company_name, software_name)
+		self.data_types.set_view(self.ui.view)
+		self.data_types.show()
+		self.data_types.update()
+
+	@Slot()
+	@exception_handler
 	def on_actionExit_triggered(self):
 		self.close()
 
@@ -456,6 +478,9 @@ class Main(PMainWindow):
 		except OverflowError:
 			# File is so large we cannot use the scroll bar.
 			self.ui.fileScrollBar.setEnabled(False)
+
+		if self.data_types:
+			self.data_types.update()
 
 def main():
 	app = QtGui.QApplication(sys.argv)
