@@ -384,6 +384,8 @@ class Main(PMainWindow):
 
 		self.ui.fileScrollBar.setEnabled(False)
 
+		self.clipboard = QApplication.clipboard()
+
 		self.find_and_replace = None
 		self.data_types = None
 
@@ -466,6 +468,14 @@ class Main(PMainWindow):
 
 	@Slot()
 	@exception_handler
+	def on_actionCopy_triggered(self):
+		length = self.ui.view.selection_end - self.ui.view.selection_start
+		data = self.ui.view.data_at_position(self.ui.view.selection_start,
+		                                     length)
+		self.clipboard.setText(data[:length].tobytes())
+
+	@Slot()
+	@exception_handler
 	def on_fileScrollBar_valueChanged(self):
 		self.ui.view.set_line(self.ui.fileScrollBar.value())
 
@@ -481,6 +491,12 @@ class Main(PMainWindow):
 
 		if self.data_types:
 			self.data_types.update()
+
+		if self.ui.view.selection_start >= 0 and \
+		   self.ui.view.selection_end >= 0:
+			self.ui.actionCopy.setEnabled(True)
+		else:
+			self.ui.actionCopy.setEnabled(False)
 
 def main():
 	app = QtGui.QApplication(sys.argv)
