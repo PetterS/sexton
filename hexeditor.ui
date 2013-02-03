@@ -78,6 +78,10 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset>
+     <normaloff>images/Web-Application-Icons-Set/PNG-48/Load.png</normaloff>images/Web-Application-Icons-Set/PNG-48/Load.png</iconset>
+   </property>
    <property name="text">
     <string>Open</string>
    </property>
@@ -102,11 +106,19 @@
    </property>
   </action>
   <action name="actionAbout">
+   <property name="icon">
+    <iconset>
+     <normaloff>images/Web-Application-Icons-Set/PNG-48/Info.png</normaloff>images/Web-Application-Icons-Set/PNG-48/Info.png</iconset>
+   </property>
    <property name="text">
     <string>About</string>
    </property>
   </action>
   <action name="actionData_Types">
+   <property name="icon">
+    <iconset>
+     <normaloff>images/Web-Application-Icons-Set/PNG-48/Modify.png</normaloff>images/Web-Application-Icons-Set/PNG-48/Modify.png</iconset>
+   </property>
    <property name="text">
     <string>Data Types</string>
    </property>
@@ -117,6 +129,10 @@
   <action name="actionFind_Replace">
    <property name="enabled">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>images/Web-Application-Icons-Set/PNG-48/Search.png</normaloff>images/Web-Application-Icons-Set/PNG-48/Search.png</iconset>
    </property>
    <property name="text">
     <string>Find/Replace...</string>
