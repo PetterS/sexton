@@ -205,8 +205,3 @@ class DataTypes(QMainWindow):
 	@exception_handler
 	def on_doubleRadioButton_clicked(self):
 		self.update()
-
-	@Slot()
-	@exception_handler
-	def on_littleEndianFloatingPointCheckBox_clicked(self):
-		self.on_hexEdit_textEdited()
