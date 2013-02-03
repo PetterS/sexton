@@ -1,12 +1,12 @@
 
 import binascii
-from time import sleep
+import re
 
 from PySide import QtUiTools
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from Petter.guihelper import invoke_in_main_thread, exception_handler
+from Petter.guihelper import exception_handler
 
 class FindAndReplace(QMainWindow):
 	def __init__(self, main_window, company_name, software_name):
@@ -77,14 +77,19 @@ class FindAndReplace(QMainWindow):
 		start_pos = current_pos
 		bytes_searched = 0
 
+		encoding = self.ui.encodingEdit.text()
+
 		wanted_bytes = None
+		regex_selected = False
 		if self.ui.stringButton.isChecked():
-			encoding = self.ui.encodingEdit.text()
 			wanted_bytes = self.ui.searchEdit.text().encode(encoding)
 		elif self.ui.hexButton.isChecked():
-			hex_string = self.ui.searchEdit.text().encode('utf-8')
+			hex_string = self.ui.searchEdit.text().encode(encoding)
 			hex_string = hex_string.replace(" ", "")
 			wanted_bytes = binascii.unhexlify(hex_string)
+		elif self.ui.regexButton.isChecked():
+			regex_selected = True
+			regex = re.compile(self.ui.searchEdit.text().encode(encoding))
 
 		wrapped_around = False
 		while(bytes_searched < file_length):
@@ -96,13 +101,24 @@ class FindAndReplace(QMainWindow):
 			view, length = self.view.data_buffer.read(current_pos, step_length)
 			# Convert view to bytes for searching.
 			bytes = view[:length].tobytes()
-			# Search in the bytes.
-			found_index = bytes.find(wanted_bytes)
-			if found_index >= 0:
+			if not regex_selected:
+				# Search in the bytes.
+				found_start = bytes.find(wanted_bytes)
+				found_end   = found_start + len(wanted_bytes)
+			else:
+				# Search in the bytes using regex.
+				match = regex.search(bytes)
+				if match is None:
+					found_start = -1
+				else:
+					found_start = match.start()
+					found_end   = match.end()
+
+			if found_start >= 0:
 				# Set cursor position and selection to the found string.
-				self.view.set_cursor_position(current_pos + found_index)
-				self.view.set_selection(current_pos + found_index,
-				                        current_pos + found_index + len(wanted_bytes))
+				self.view.set_cursor_position(current_pos + found_start)
+				self.view.set_selection(current_pos + found_start,
+				                        current_pos + found_end)
 				break
 			else:
 				bytes_searched += length
