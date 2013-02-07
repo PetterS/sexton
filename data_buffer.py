@@ -1,3 +1,4 @@
+
 import os
 
 class DataBuffer:
@@ -15,7 +16,7 @@ class TestBuffer(DataBuffer):
 
 	def __init__(self, length):
 		self.data_length = length
-		self.buffer = bytearray(self.data_length)
+		self.buffer = bytes(self.data_length)
 		self.view = memoryview(self.buffer)
 
 	def read(self, pos, length):
@@ -54,7 +55,7 @@ class FileBuffer(DataBuffer):
 			if pos + self.buffer_length > self.file_size:
 				self.buffer_length = self.file_size - pos
 			# TODO: Reuse bytearray each time.
-			self.buffer = bytearray(f.read(self.buffer_length))
+			self.buffer = bytes(f.read(self.buffer_length))
 			self.view = memoryview(self.buffer)
 			self.buffer_start = pos
 

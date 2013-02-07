@@ -66,7 +66,7 @@ class DataTypes(QMainWindow):
 		return format_string, printf_string
 
 	def set_hexEdit_bytes(self, bytes):
-		text = ''.join( [ "%02X " % ord( x ) for x in bytes ] ).strip()
+		text = ''.join( [ "%02X " %  x for x in bytes ] ).strip()
 		self.ui.hexEdit.setText(text)
 
 	def set_bytes(self, bytes_or_view):
@@ -130,7 +130,7 @@ class DataTypes(QMainWindow):
 		# Fires only when the text is edited by the user, not
 		# by the program.
 		try:
-			hex_string = self.ui.hexEdit.text().encode('utf-8')
+			hex_string = self.ui.hexEdit.text()
 			hex_string = hex_string.replace(" ", "")
 			bytes = binascii.unhexlify(hex_string)
 		except:

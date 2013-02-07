@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import sys
@@ -21,6 +21,10 @@ software_name = 'HyperEdit'
 __version__ = '4.0 alpha'
 
 class HexView(QtGui.QWidget):
+	HEX_LEFT = object()
+	HEX_RIGHT = object()
+	TEXT = object()
+
 	def __init__(self, parent=None, main_window=None):
 		super(HexView, self).__init__(parent)
 		self.main_window = main_window
@@ -36,13 +40,15 @@ class HexView(QtGui.QWidget):
 		self.cursor_line   = 0
 		self.cursor_column = 0
 		self.cursor_data_view = None
+		self.cursor_hexmode = self.TEXT
 
 		self.selection_start = -1
 		self.selection_end = -1
 
 		self.cursor_color = QColor(255,0,0)
 		self.text_color   = QColor(0,0,0)
-		self.cursor_background_brush    = QBrush(QColor(255,255,1))
+		self.cursor_background_brush          = QBrush(QColor(255,255,1))
+		self.cursor_disabled_background_brush = QBrush(QColor(80,80,80))
 		self.selection_background_brush = QBrush(QColor(180,255,180))
 
 		# Accept key strokes.
@@ -149,8 +155,9 @@ class HexView(QtGui.QWidget):
 				global_offset = line * self.line_width
 				for i in range(min(self.line_width, length - self.line_width * l)):
 					text_string = '.'
-					byte = view[self.line_width * l + i]
-					num = ord(byte)
+					position = self.line_width * l + i
+					byte = view[position:position + 1].tobytes()
+					num  = view[position]
 					if num >= 32:
 						try:
 							# TODO: allow user to change decoder.
@@ -159,11 +166,12 @@ class HexView(QtGui.QWidget):
 							text_string = byte.decode('cp850')
 					byte_string = '%02X' % num
 
+					selected = False
 					if i == self.cursor_column and line == self.cursor_line:
 						# We are at the data cursor; update the colors.
 						painter.setPen(self.cursor_color)
-						painter.setBackgroundMode(Qt.OpaqueMode)
-						painter.setBackground(self.cursor_background_brush)
+						#painter.setBackgroundMode(Qt.OpaqueMode)
+						selected = True
 					elif self.selection_start <= global_offset and \
 					     global_offset < self.selection_end:
 						painter.setBackground(self.selection_background_brush)
@@ -172,8 +180,16 @@ class HexView(QtGui.QWidget):
 
 					byte_string = byte_string
 					byte_point = QPoint(180 + 25*i, (l + 1) * self.line_height)
+					if selected and self.cursor_hexmode != self.TEXT:
+						painter.setBackground(self.cursor_background_brush)
+						painter.setBackgroundMode(Qt.OpaqueMode)
 					painter.drawText(byte_point, byte_string)
+					painter.setBackgroundMode(Qt.TransparentMode)
+
 					text_point = QPoint(600 + self.character_width*i, (l + 1) * self.line_height)
+					if selected and self.cursor_hexmode == self.TEXT:
+						painter.setBackground(self.cursor_background_brush)
+						painter.setBackgroundMode(Qt.OpaqueMode)
 					painter.drawText(text_point, text_string)
 
 					painter.setPen(self.text_color)
@@ -294,6 +310,11 @@ class HexView(QtGui.QWidget):
 			self.move_cursor_page_down()
 		elif key == Qt.Key_PageUp:
 			self.move_cursor_page_up()
+		elif key == Qt.Key_Tab:
+			if self.cursor_hexmode == self.TEXT:
+				self.cursor_hexmode = self.HEX_LEFT
+			else:
+				self.cursor_hexmode = self.TEXT
 		else:
 			return
 
