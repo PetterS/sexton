@@ -69,6 +69,7 @@ class HexView(QtGui.QWidget):
 	def clear_selection(self):
 		self.selection_start = -1
 		self.selection_end   = -1
+		self.update()
 
 	def open(self, data_buffer):
 		self.data_buffer = data_buffer
@@ -136,6 +137,13 @@ class HexView(QtGui.QWidget):
 			else:
 				output_string += '.'
 		return output_string
+
+	def switch_view(self):
+		if self.cursor_hexmode == self.TEXT:
+			self.cursor_hexmode = self.HEX_LEFT
+		else:
+			self.cursor_hexmode = self.TEXT
+		self.update()
 
 # PRIVATE METHODS
 
@@ -358,11 +366,6 @@ class HexView(QtGui.QWidget):
 			self.move_cursor_page_down()
 		elif key == Qt.Key_PageUp:
 			self.move_cursor_page_up()
-		elif key == Qt.Key_Tab:
-			if self.cursor_hexmode == self.TEXT:
-				self.cursor_hexmode = self.HEX_LEFT
-			else:
-				self.cursor_hexmode = self.TEXT
 		else:
 			return
 
@@ -478,6 +481,7 @@ class Main(PMainWindow):
 		self.ui.view.open(FileBuffer(file_name))
 
 		self.ui.fileScrollBar.setEnabled(True)
+		self.ui.actionFind_Replace.setEnabled(True)
 		try:
 			self.ui.fileScrollBar.setMinimum(0)
 			self.ui.fileScrollBar.setMaximum(max(0, self.ui.view.number_of_rows() - 10))
@@ -514,6 +518,11 @@ class Main(PMainWindow):
 	@exception_handler
 	def on_actionClear_Selection_triggered(self):
 		self.ui.view.clear_selection()
+
+	@Slot()
+	@exception_handler
+	def on_actionSwitch_View_triggered(self):
+		self.ui.view.switch_view()
 
 	@Slot()
 	@exception_handler
