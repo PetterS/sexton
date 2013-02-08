@@ -45,10 +45,16 @@ class HexView(QtGui.QWidget):
 		self.selection_start = -1
 		self.selection_end = -1
 
+		window_color = self.palette().window().color()
+		cursor_disabled_color = QColor()
+		cursor_disabled_color.setRedF(window_color.redF()     - 0.1)
+		cursor_disabled_color.setGreenF(window_color.greenF() - 0.1)
+		cursor_disabled_color.setBlueF(window_color.blueF()   - 0.1)
+
 		self.cursor_color = QColor(255,0,0)
 		self.text_color   = QColor(0,0,0)
 		self.cursor_background_brush          = QBrush(QColor(255,255,1))
-		self.cursor_disabled_background_brush = QBrush(QColor(80,80,80))
+		self.cursor_disabled_background_brush = QBrush(cursor_disabled_color)
 		self.selection_background_brush = QBrush(QColor(180,255,180))
 
 		# Accept key strokes.
@@ -118,6 +124,19 @@ class HexView(QtGui.QWidget):
 		view, length = self.data_buffer.read(position, length)
 		return view
 
+	def bytes_to_string(self, byte_data):
+		output_string = ''
+		for i in range(len(byte_data)):
+			if byte_data[i] >= 32:
+				try:
+					# TODO: allow user to change decoder.
+					output_string += byte_data[i:i+1].decode('cp1252')
+				except:
+					output_string += byte_data[i:i+1].decode('cp850')
+			else:
+				output_string += '.'
+		return output_string
+
 # PRIVATE METHODS
 
 	def dragEnterEvent(self, e):
@@ -156,21 +175,14 @@ class HexView(QtGui.QWidget):
 				for i in range(min(self.line_width, length - self.line_width * l)):
 					text_string = '.'
 					position = self.line_width * l + i
-					byte = view[position:position + 1].tobytes()
 					num  = view[position]
-					if num >= 32:
-						try:
-							# TODO: allow user to change decoder.
-							text_string = byte.decode('cp1252')
-						except:
-							text_string = byte.decode('cp850')
 					byte_string = '%02X' % num
+					byte = view[position:position + 1].tobytes()
+					text_string = self.bytes_to_string(byte)
 
 					selected = False
 					if i == self.cursor_column and line == self.cursor_line:
-						# We are at the data cursor; update the colors.
-						painter.setPen(self.cursor_color)
-						#painter.setBackgroundMode(Qt.OpaqueMode)
+						# We are at the data cursor.
 						selected = True
 					elif self.selection_start <= global_offset and \
 					     global_offset < self.selection_end:
@@ -178,18 +190,41 @@ class HexView(QtGui.QWidget):
 						painter.setBackgroundMode(Qt.OpaqueMode)
 						byte_string += ' '
 
-					byte_string = byte_string
 					byte_point = QPoint(180 + 25*i, (l + 1) * self.line_height)
-					if selected and self.cursor_hexmode != self.TEXT:
+					if selected and self.cursor_hexmode == self.HEX_LEFT:
 						painter.setBackground(self.cursor_background_brush)
 						painter.setBackgroundMode(Qt.OpaqueMode)
-					painter.drawText(byte_point, byte_string)
-					painter.setBackgroundMode(Qt.TransparentMode)
+						painter.setPen(self.cursor_color)
+					elif selected and self.cursor_hexmode == self.TEXT:
+						painter.setBackground(self.cursor_disabled_background_brush)
+						painter.setBackgroundMode(Qt.OpaqueMode)
+						painter.setPen(self.cursor_color)
+					painter.drawText(byte_point, byte_string[0])
+
+					byte_point = QPoint(180 + 25*i + 8, (l + 1) * self.line_height)
+					if selected and self.cursor_hexmode == self.HEX_RIGHT:
+						painter.setBackground(self.cursor_background_brush)
+						painter.setBackgroundMode(Qt.OpaqueMode)
+						painter.setPen(self.cursor_color)
+					elif selected and self.cursor_hexmode == self.TEXT:
+						painter.setBackground(self.cursor_disabled_background_brush)
+						painter.setBackgroundMode(Qt.OpaqueMode)
+						painter.setPen(self.cursor_color)
+					elif selected:
+						painter.setBackgroundMode(Qt.TransparentMode)
+						painter.setPen(self.text_color)
+
+					painter.drawText(byte_point, byte_string[1])
 
 					text_point = QPoint(600 + self.character_width*i, (l + 1) * self.line_height)
 					if selected and self.cursor_hexmode == self.TEXT:
 						painter.setBackground(self.cursor_background_brush)
 						painter.setBackgroundMode(Qt.OpaqueMode)
+						painter.setPen(self.cursor_color)
+					elif selected:
+						painter.setBackground(self.cursor_disabled_background_brush)
+						painter.setBackgroundMode(Qt.OpaqueMode)
+						painter.setPen(self.cursor_color)
 					painter.drawText(text_point, text_string)
 
 					painter.setPen(self.text_color)
@@ -293,6 +328,7 @@ class HexView(QtGui.QWidget):
 		if self.cursor_column < self.line_width - 1 and pos < self.data_buffer.length():
 			self.cursor_column += 1
 
+	@exception_handler
 	def keyPressEvent(self, event):
 		if not self.data_buffer:
 			return
@@ -303,9 +339,21 @@ class HexView(QtGui.QWidget):
 		elif key == Qt.Key_Down:
 			self.move_cursor_down()
 		elif key == Qt.Key_Left:
-			self.move_cursor_left()
+			if self.cursor_hexmode == self.TEXT:
+				self.move_cursor_left()
+			elif self.cursor_hexmode == self.HEX_RIGHT:
+				self.cursor_hexmode = self.HEX_LEFT
+			elif self.cursor_hexmode == self.HEX_LEFT:
+				self.move_cursor_left()
+				self.cursor_hexmode = self.HEX_RIGHT
 		elif key == Qt.Key_Right:
-			self.move_cursor_right()
+			if self.cursor_hexmode == self.TEXT:
+				self.move_cursor_right()
+			elif self.cursor_hexmode == self.HEX_LEFT:
+				self.cursor_hexmode = self.HEX_RIGHT
+			elif self.cursor_hexmode == self.HEX_RIGHT:
+				self.move_cursor_right()
+				self.cursor_hexmode = self.HEX_LEFT
 		elif key == Qt.Key_PageDown:
 			self.move_cursor_page_down()
 		elif key == Qt.Key_PageUp:
@@ -348,6 +396,7 @@ class HexView(QtGui.QWidget):
 
 		return new_line, new_col
 
+	@exception_handler
 	def mousePressEvent(self, event):
 		if not self.data_buffer:
 			return
@@ -363,7 +412,7 @@ class HexView(QtGui.QWidget):
 		elif button == Qt.RightButton:
 			line, col = self.xy_to_linecol(x, y)
 
-			if line >= 0 and col >= 0:
+			if line is not None and col is not None:
 				cursor_pos = self.cursor_line * self.line_width + self.cursor_column
 				click_pos  = line * self.line_width + col
 
@@ -382,6 +431,7 @@ class HexView(QtGui.QWidget):
 		self.main_window.update_line(self.data_line)
 		self.update()
 
+	@exception_handler
 	def wheelEvent(self, event):
 		lines_delta = - int(0.3 * event.delta() / self.line_height)
 		if lines_delta <= 0:
@@ -493,7 +543,12 @@ class Main(PMainWindow):
 		length = self.ui.view.selection_end - self.ui.view.selection_start
 		data = self.ui.view.data_at_position(self.ui.view.selection_start,
 		                                     length)
-		self.clipboard.setText(data[:length].tobytes())
+		byte_data = data[:length].tobytes()
+		if self.ui.view.cursor_hexmode == self.ui.view.TEXT:
+			string_data = self.ui.view.bytes_to_string(byte_data)
+		else:
+			string_data = ''.join( ["%02X " %  x for x in byte_data] ).strip()
+		self.clipboard.setText(string_data)
 
 	@Slot()
 	@exception_handler
