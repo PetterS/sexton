@@ -84,7 +84,7 @@ class FindAndReplace(QMainWindow):
 		if self.ui.stringButton.isChecked():
 			wanted_bytes = self.ui.searchEdit.text().encode(encoding)
 		elif self.ui.hexButton.isChecked():
-			hex_string = self.ui.searchEdit.text().encode(encoding)
+			hex_string = self.ui.searchEdit.text()
 			hex_string = hex_string.replace(" ", "")
 			wanted_bytes = binascii.unhexlify(hex_string)
 		elif self.ui.regexButton.isChecked():

@@ -77,7 +77,7 @@ class HexView(QtGui.QWidget):
 
 	def number_of_lines_on_screen(self):
 		screen_height = self.height()
-		return int(screen_height / self.line_height)
+		return int(screen_height // self.line_height)
 
 	def number_of_rows(self):
 		num_rows = self.data_buffer.length() // self.line_width
@@ -101,7 +101,7 @@ class HexView(QtGui.QWidget):
 		else:
 			# If the cursor is not visible, let it end up in the
 			# middle of the screen.
-			self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() / 2)
+			self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() // 2)
 
 		self.main_window.update_line(self.data_line)
 		self.update()

@@ -66,7 +66,7 @@ class FileBuffer(DataBuffer):
 		read_length = min(length, self.file_size - pos)
 		# Is the requested interval outside the current buffer?
 		if pos < self.buffer_start or pos + read_length > self.buffer_start + self.buffer_length:
-			self.read_into_buffer(max(0, pos - self.buffer_max_length / 2))
+			self.read_into_buffer(max(0, pos - self.buffer_max_length // 2))
 			#print "-- Start in view:", pos - self.buffer_start
 			the_view = self.view[pos - self.buffer_start:]
 			return the_view, read_length
