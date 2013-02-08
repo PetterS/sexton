@@ -29,6 +29,8 @@ class FindAndReplace(QMainWindow):
 		# Read settings
 		self.settings = QSettings(company_name, software_name)
 		self.restoreGeometry(self.settings.value("FindAndReplace/geometry"))
+		self.ui.encodingEdit.setText(self.settings.value("FindAndReplace/encoding", "utf-8"))
+		self.ui.searchEdit.setText(self.settings.value("FindAndReplace/search", ""))
 
 		self.view = None
 
@@ -41,6 +43,8 @@ class FindAndReplace(QMainWindow):
 
 	def closeEvent(self, event):
 		self.settings.setValue("FindAndReplace/geometry", self.saveGeometry())
+		self.settings.setValue("FindAndReplace/encoding", self.ui.encodingEdit.text())
+		self.settings.setValue("FindAndReplace/search", self.ui.searchEdit.text())
 		QMainWindow.closeEvent(self, event)
 
 	def setEnabled(self, enabled):
