@@ -13,6 +13,7 @@ from Petter.guihelper import invoke_in_main_thread, exception_handler, PMainWind
 
 from data_buffer import *
 from data_types import DataTypes
+from drives import DriveDialog
 from find_and_replace import FindAndReplace
 
 # Used for saving settings (e.g. in the registry on Windows)
@@ -463,6 +464,19 @@ class Main(PMainWindow):
 		self.find_and_replace = None
 		self.data_types = None
 
+		# Set up status bar
+		self.status_bar_position         = QLabel("")
+		self.status_bar_position_hex     = QLabel("")
+		self.status_bar_position_percent = QLabel("")
+		self.status_bar_file_size        = QLabel("")
+		self.statusBar().addPermanentWidget(self.status_bar_file_size)
+		self.statusBar().addPermanentWidget(self.status_bar_position)
+		self.statusBar().addPermanentWidget(self.status_bar_position_hex)
+		self.statusBar().addPermanentWidget(self.status_bar_position_percent)
+
+		# Set up scoll bar
+		self.ui.fileScrollBar.ignore_valueChanged = False
+
 	def closeEvent(self, event):
 		if self.find_and_replace:
 			self.find_and_replace.close()
@@ -477,8 +491,12 @@ class Main(PMainWindow):
 	def resizeEvent(self, event):
 		PMainWindow.resizeEvent(self, event)
 
-	def open_file(self, file_name):
-		self.ui.view.open(FileBuffer(file_name))
+	def open_file(self, file_name, is_drive = False):
+		if is_drive:
+			buffer = DriveBuffer(file_name)
+		else:
+			buffer = FileBuffer(file_name)
+		self.ui.view.open(buffer)
 
 		self.ui.fileScrollBar.setEnabled(True)
 		self.ui.actionFind_Replace.setEnabled(True)
@@ -486,14 +504,36 @@ class Main(PMainWindow):
 			self.ui.fileScrollBar.setMinimum(0)
 			self.ui.fileScrollBar.setMaximum(max(0, self.ui.view.number_of_rows() - 10))
 			self.ui.fileScrollBar.setPageStep(self.ui.view.number_of_lines_on_screen())
+
+			self.scrollbar_factor = None
 			self.ui.fileScrollBar.setEnabled(True)
 		except OverflowError:
 			# File is so large we cannot use the scroll bar.
-			self.ui.fileScrollBar.setEnabled(False)
+			#self.ui.fileScrollBar.setEnabled(False)
 
+			wanted_size = self.ui.view.number_of_rows() - 10
+			self.scrollbar_factor = wanted_size // 1000**3
+			self.ui.fileScrollBar.setMaximum(wanted_size // self.scrollbar_factor)
+			self.ui.fileScrollBar.setPageStep(self.ui.view.number_of_lines_on_screen() // self.scrollbar_factor)
+
+			self.statusBar().showMessage("Warning: Scrollbar not exact due to Qt limitation.")
+			self.ui.fileScrollBar.setEnabled(True)
+
+		# Set the file size in the status bar.
+		file_size = self.ui.view.data_buffer.length()
+		if file_size < 1024:
+			self.status_bar_file_size.setText("File size: {0} bytes".format(file_size))
+		elif file_size < 1024**2:
+			self.status_bar_file_size.setText("File size: {0} bytes ({1:.2f} kB)"
+			                                  .format(file_size, file_size / 1024))
+		elif file_size < 1024**3:
+			self.status_bar_file_size.setText("File size: {0} bytes ({1:.2f} MB)"
+			                                  .format(file_size, file_size / 1024**2))
+		else:
+			self.status_bar_file_size.setText("File size: {0} bytes ({1:.2f} GB)"
+			                                  .format(file_size, file_size / 1024**3))
+		# Repaint the hexagonal view.
 		self.ui.view.repaint()
-
-		self.statusBar().showMessage('File size: {0}'.format(self.ui.view.data_buffer.length()))
 
 	@Slot()
 	@exception_handler
@@ -505,6 +545,13 @@ class Main(PMainWindow):
 			dir, fname = os.path.split(file_name)
 			self.settings.setValue("default_dir", dir)
 			self.open_file(file_name)
+
+	@Slot()
+	@exception_handler
+	def on_actionOpen_Drive_triggered(self):
+		self.drive_dialog = DriveDialog(self, company_name, software_name)
+		self.drive_dialog.set_view(self.ui.view)
+		self.drive_dialog.exec_()
 
 	@Slot()
 	@exception_handler
@@ -562,17 +609,34 @@ class Main(PMainWindow):
 	@Slot()
 	@exception_handler
 	def on_fileScrollBar_valueChanged(self):
-		self.ui.view.set_line(self.ui.fileScrollBar.value())
+
+		# If we are supposed to ignore this event, return.
+		if self.ui.fileScrollBar.ignore_valueChanged:
+			self.ui.fileScrollBar.ignore_valueChanged = False
+			return
+
+		if self.scrollbar_factor is None:
+			# Scroll bar is exact.
+			self.ui.view.set_line(self.ui.fileScrollBar.value())
+		else:
+			# There are too many lines for the scrollbar to show exactly.
+			value = self.ui.fileScrollBar.value()
+			self.ui.view.set_line(value * self.scrollbar_factor)
 
 	@exception_handler
 	def update_line(self, line):
-		try:
-			if self.ui.fileScrollBar.isEnabled():
-				if self.ui.fileScrollBar.value() != line:
-					self.ui.fileScrollBar.setValue(line)
-		except OverflowError:
-			# File is so large we cannot use the scroll bar.
-			self.ui.fileScrollBar.setEnabled(False)
+
+		if self.scrollbar_factor is None:
+			# Scroll bar is exact.
+			if self.ui.fileScrollBar.value() != line:
+				self.ui.fileScrollBar.ignore_valueChanged = True
+				self.ui.fileScrollBar.setValue(line)
+		else:
+			# There are too many lines for the scrollbar to show exactly.
+			scrollbar_pos = line // self.scrollbar_factor
+			if self.ui.fileScrollBar.value() != scrollbar_pos:
+				self.ui.fileScrollBar.ignore_valueChanged = True
+				self.ui.fileScrollBar.setValue(scrollbar_pos)
 
 		if self.data_types:
 			self.data_types.update()
@@ -582,6 +646,12 @@ class Main(PMainWindow):
 			self.ui.actionCopy.setEnabled(True)
 		else:
 			self.ui.actionCopy.setEnabled(False)
+
+		position = self.ui.view.get_cursor_position()
+		file_size = self.ui.view.data_buffer.length()
+		self.status_bar_position.setText("{0}".format(position))
+		self.status_bar_position_hex.setText("0x{0:x}".format(position))
+		self.status_bar_position_percent.setText("{0:.2f}%".format(100 * (position + 1) / file_size))
 
 def main():
 	app = QtGui.QApplication(sys.argv)
