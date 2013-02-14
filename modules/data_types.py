@@ -1,5 +1,6 @@
 
 import binascii
+import os
 import struct
 
 from PySide import QtUiTools
@@ -18,7 +19,8 @@ class DataTypes(QMainWindow):
 
 		# Set up UI
 		loader = QtUiTools.QUiLoader()
-		self.ui = loader.load('data_Types.ui', None)
+		this_dir = os.path.dirname(__file__)
+		self.ui = loader.load(os.path.join(this_dir, 'data_Types.ui'), None)
 		self.setCentralWidget(self.ui)
 		QMetaObject.connectSlotsByName(self)
 

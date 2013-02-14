@@ -1,5 +1,6 @@
 
 import binascii
+import os
 import re
 
 from PySide import QtUiTools
@@ -18,7 +19,8 @@ class FindAndReplace(QMainWindow):
 
 		# Set up UI
 		loader = QtUiTools.QUiLoader()
-		self.ui = loader.load('find_and_replace.ui', None)
+		this_dir = os.path.dirname(__file__)
+		self.ui = loader.load(os.path.join(this_dir, 'find_and_replace.ui'), None)
 		self.setCentralWidget(self.ui)
 		QMetaObject.connectSlotsByName(self)
 

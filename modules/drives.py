@@ -1,4 +1,6 @@
 
+import os
+
 try:
 	import pywintypes
 	import win32file
@@ -24,7 +26,8 @@ class DriveDialog(QDialog):
 
 		# Set up UI
 		loader = QtUiTools.QUiLoader()
-		self.ui = loader.load('drives.ui', self)
+		this_dir = os.path.dirname(__file__)
+		self.ui = loader.load(os.path.join(this_dir, 'drives.ui'), self)
 		layout = QVBoxLayout()
 		layout.addWidget(self.ui)
 		self.setLayout(layout)
