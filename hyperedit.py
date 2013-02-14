@@ -18,10 +18,10 @@ except ImportError:
 
 from Petter.guihelper import invoke_in_main_thread, exception_handler, PMainWindow
 
-from data_buffer import *
-from data_types import DataTypes
-from drives import DriveDialog
-from find_and_replace import FindAndReplace
+from modules.data_buffer import *
+from modules.data_types import DataTypes
+from modules.drives import DriveDialog
+from modules.find_and_replace import FindAndReplace
 
 # Used for saving settings (e.g. in the registry on Windows)
 company_name = 'Petter Strandmark'
