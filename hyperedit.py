@@ -1,13 +1,20 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import os
 import sys
+from time import sleep
 
 # Import Qt modules
 import PySide
 from PySide import QtGui
 from PySide.QtCore import *
 from PySide.QtGui import *
+
+try:
+	import win32com.shell.shell as pywin32_shell
+except ImportError:
+	pywin32_shell = None
 
 from Petter.guihelper import invoke_in_main_thread, exception_handler, PMainWindow
 
@@ -477,6 +484,13 @@ class Main(PMainWindow):
 		# Set up scoll bar
 		self.ui.fileScrollBar.ignore_valueChanged = False
 
+		self.ASADMIN = 'asadmin'
+		if pywin32_shell is None or self.ASADMIN in sys.argv:
+			self.ui.actionElevate.setEnabled(False)
+
+		if self.ASADMIN in sys.argv:
+			self.setWindowTitle("HyperEdit (ADMINISTRATOR)")
+
 	def closeEvent(self, event):
 		if self.find_and_replace:
 			self.find_and_replace.close()
@@ -587,6 +601,17 @@ class Main(PMainWindow):
 		self.data_types.set_view(self.ui.view)
 		self.data_types.show()
 		self.data_types.update()
+
+	@Slot()
+	@exception_handler
+	def on_actionElevate_triggered(self):
+		if pywin32_shell is not None:
+			if self.ASADMIN not in sys.argv:
+				script = os.path.abspath(sys.argv[0])
+				params = ' '.join([script] + sys.argv[1:] + [self.ASADMIN])
+				print("Elevating...")
+				pywin32_shell.ShellExecuteEx(lpVerb='runas', lpFile=sys.executable, lpParameters=params, nShow=1)
+				self.close()
 
 	@Slot()
 	@exception_handler

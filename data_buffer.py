@@ -1,6 +1,7 @@
 
 import os
 try:
+	import pywintypes
 	import win32file
 except:
 	win32file = None
@@ -104,24 +105,30 @@ class DriveBuffer(DataBuffer):
 		#print("-- {0} bytes per sector".format(self.bytes_per_sector))
 		#print("-- drive size : {0:.2f} GB".format(self.file_size / 1024**3))
 
-		drive_device_name = "\\\\.\\" + self.drive_name.strip("\\")
-		hfile = win32file.CreateFile(drive_device_name,
-		                             win32file.GENERIC_READ,
-		                             win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
-		                             None,
-		                             win32file.OPEN_EXISTING,
-		                             win32file.FILE_ATTRIBUTE_NORMAL | win32file.FILE_FLAG_RANDOM_ACCESS,
-		                             None)
-		# Set the read position. It is important that
-		# we read a multiple of the sector size.
-		win32file.SetFilePointer(hfile, pos, win32file.FILE_BEGIN)
+		try:
+			drive_device_name = "\\\\.\\" + self.drive_name.strip("\\")
+			hfile = win32file.CreateFile(drive_device_name,
+			                             win32file.GENERIC_READ,
+			                             win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
+			                             None,
+			                             win32file.OPEN_EXISTING,
+			                             win32file.FILE_ATTRIBUTE_NORMAL | win32file.FILE_FLAG_RANDOM_ACCESS,
+			                             None)
+			# Set the read position. It is important that
+			# we read a multiple of the sector size.
+			win32file.SetFilePointer(hfile, pos, win32file.FILE_BEGIN)
 
-		self.buffer_length = self.buffer_max_length
-		if pos + self.buffer_length > self.file_size:
-			self.buffer_length = self.file_size - pos
+			self.buffer_length = self.buffer_max_length
+			if pos + self.buffer_length > self.file_size:
+				self.buffer_length = self.file_size - pos
 
-		result = win32file.ReadFile(hfile, self.buffer_length)
-		win32file.CloseHandle(hfile)
+			result = win32file.ReadFile(hfile, self.buffer_length)
+			win32file.CloseHandle(hfile)
+		except pywintypes.error as err:
+			if err.winerror == 5:
+				raise Exception("Access denied.\n\nAdministrator privileges are required to open drives.\nUse File->Elevate Process.")
+			else:
+				raise Exception(err.strerror)
 
 		self.buffer = result[1]
 		self.view = memoryview(self.buffer)
