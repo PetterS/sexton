@@ -444,6 +444,9 @@ class HexView(QtGui.QWidget):
 
 	@exception_handler
 	def wheelEvent(self, event):
+		if not self.data_buffer:
+			return
+
 		lines_delta = - int(0.3 * event.delta() / self.line_height)
 		if lines_delta <= 0:
 			self.data_line = max(self.data_line + lines_delta, 0)
