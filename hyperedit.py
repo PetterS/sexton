@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+#
+# Petter Strandmark 2013.
 
 import os
 import sys

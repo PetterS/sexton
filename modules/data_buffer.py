@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+#
+# Petter Strandmark 2013.
 
 import os
 try:
