@@ -611,7 +611,7 @@ class Main(PMainWindow):
 		if pywin32_shell is not None:
 			if self.ASADMIN not in sys.argv:
 				script = os.path.abspath(sys.argv[0])
-				params = ' '.join([script] + sys.argv[1:] + [self.ASADMIN])
+				params = ' '.join(["\"" + script + "\""] + sys.argv[1:] + [self.ASADMIN])
 				print("Elevating...")
 				pywin32_shell.ShellExecuteEx(lpVerb='runas', lpFile=sys.executable, lpParameters=params, nShow=1)
 				self.close()
