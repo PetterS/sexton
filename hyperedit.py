@@ -336,13 +336,23 @@ class HexView(QtGui.QWidget):
 				self.move_cursor_down()
 
 	def move_cursor_left(self):
-		self.cursor_column = max(0, self.cursor_column - 1)
+		if self.cursor_column == 0:
+			if self.cursor_line > 0:
+				self.cursor_line -= 1
+				self.cursor_column = self.line_width - 1
+				self.scroll_to_cursor()
+		else:
+			self.cursor_column = self.cursor_column - 1
 
 	def move_cursor_right(self):
 		pos = self.line_width * self.cursor_line + self.cursor_column
 		pos += 1
 		if self.cursor_column < self.line_width - 1 and pos < self.data_buffer.length():
 			self.cursor_column += 1
+		elif pos < self.data_buffer.length():
+			self.cursor_column = 0
+			self.cursor_line += 1
+			self.scroll_to_cursor()
 
 	@exception_handler
 	def keyPressEvent(self, event):
@@ -350,11 +360,12 @@ class HexView(QtGui.QWidget):
 			return
 
 		key = event.key()
+
 		if key == Qt.Key_Up:
 			self.move_cursor_up()
 		elif key == Qt.Key_Down:
 			self.move_cursor_down()
-		elif key == Qt.Key_Left:
+		elif key == Qt.Key_Left or key == Qt.Key_Backspace:
 			if self.cursor_hexmode == self.TEXT:
 				self.move_cursor_left()
 			elif self.cursor_hexmode == self.HEX_RIGHT:
@@ -374,7 +385,40 @@ class HexView(QtGui.QWidget):
 			self.move_cursor_page_down()
 		elif key == Qt.Key_PageUp:
 			self.move_cursor_page_up()
+		elif len(event.text()) > 0:
+
+			num_rows = self.number_of_lines_on_screen()
+			view, length = self.data_buffer.read(self.line_width * self.data_line,
+			                                     self.line_width * num_rows)
+
+			if self.cursor_hexmode == self.TEXT:
+				# TODO: Allow other encodings.
+				byte_string = event.text().encode('utf-8')
+				for b in byte_string:
+					view_pos = ((self.cursor_line - self.data_line) * self.line_width 
+					           + self.cursor_column)
+					view[view_pos] = b
+					self.move_cursor_right()
+			else:
+				try:
+					input_digit = int(event.text(), 16)
+					view_pos = ((self.cursor_line - self.data_line) * self.line_width 
+					           + self.cursor_column)
+					if self.cursor_hexmode == self.HEX_LEFT:
+						new_byte = 16 * input_digit + (view[view_pos] & 0x0F)
+						view[view_pos] = new_byte
+						self.cursor_hexmode = self.HEX_RIGHT
+					elif self.cursor_hexmode == self.HEX_RIGHT:
+						new_byte = (view[view_pos] & 0xF0) + input_digit
+						view[view_pos] = new_byte
+						self.cursor_hexmode = self.HEX_LEFT
+						self.move_cursor_right()
+				except ValueError:
+					# The user may have entered an invalid hex digit.
+					# Not an error.
+					return
 		else:
+			event.ignore()
 			return
 
 		self.main_window.update_line(self.data_line)

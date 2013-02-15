@@ -16,6 +16,9 @@ class DataBuffer:
 	def flush(self):
 		pass
 
+	def is_readonly(self):
+		return True
+
 
 class TestBuffer(DataBuffer):
 
@@ -49,7 +52,6 @@ class FileBuffer(DataBuffer):
 	def read_into_buffer(self, pos):
 		#print "Reading file block: ", pos
 		self.file_size = os.path.getsize(self.file_name)
-		#print "-- file size:", self.file_size
 
 		# TODO: handle file size changes.
 
@@ -60,11 +62,9 @@ class FileBuffer(DataBuffer):
 			if pos + self.buffer_length > self.file_size:
 				self.buffer_length = self.file_size - pos
 			# TODO: Reuse bytearray each time.
-			self.buffer = bytes(f.read(self.buffer_length))
+			self.buffer = bytearray(f.read(self.buffer_length))
 			self.view = memoryview(self.buffer)
 			self.buffer_start = pos
-
-		#print "-- buffer start:", self.buffer_start, " length:", self.buffer_length
 
 	def read(self, pos, length):
 		# We cannot read past the end of the file.
@@ -72,7 +72,6 @@ class FileBuffer(DataBuffer):
 		# Is the requested interval outside the current buffer?
 		if pos < self.buffer_start or pos + read_length > self.buffer_start + self.buffer_length:
 			self.read_into_buffer(max(0, pos - self.buffer_max_length // 2))
-			#print "-- Start in view:", pos - self.buffer_start
 			the_view = self.view[pos - self.buffer_start:]
 			return the_view, read_length
 		else:
@@ -87,6 +86,9 @@ class FileBuffer(DataBuffer):
 
 	def flush(self):
 		pass
+
+	def is_readonly(self):
+		return False
 
 
 class DriveBuffer(DataBuffer):
