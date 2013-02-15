@@ -3,7 +3,6 @@
 
 import os
 import sys
-from time import sleep
 
 # Import Qt modules
 import PySide
@@ -387,6 +386,9 @@ class HexView(QtGui.QWidget):
 			self.move_cursor_page_up()
 		elif len(event.text()) > 0:
 
+			if self.data_buffer.is_readonly():
+				return
+
 			num_rows = self.number_of_lines_on_screen()
 			view, length = self.data_buffer.read(self.line_width * self.data_line,
 			                                     self.line_width * num_rows)
@@ -417,6 +419,9 @@ class HexView(QtGui.QWidget):
 					# The user may have entered an invalid hex digit.
 					# Not an error.
 					return
+
+			# Mark the buffer modified since last read.
+			self.data_buffer.set_modified()
 		else:
 			event.ignore()
 			return
