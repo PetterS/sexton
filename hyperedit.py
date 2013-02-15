@@ -166,6 +166,21 @@ class HexView(QtGui.QWidget):
 			return
 
 	def paintEvent(self, event):
+		try:
+			return self.paintEvent_main(event)
+		except Exception as err:
+			print("PAINT EVENT EXCEPTION")
+			print("---------------------")
+			import traceback
+			for tb in traceback.extract_tb(sys.exc_info()[2]):
+				# Add info to error string
+				file_name = os.path.split(tb[0])[1]
+				line = str(tb[1])
+				print(file_name, "line", line)
+			print(str(err))
+			print("---------------------")
+
+	def paintEvent_main(self, event):
 		painter = QtGui.QPainter(self)
 		painter.setRenderHint(QtGui.QPainter.Antialiasing)
 		painter.setFont(self.font)
@@ -301,7 +316,7 @@ class HexView(QtGui.QWidget):
 			else:
 				# If the cursor is invisible, let it end up in the middle of
 				# the screen.
-				self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() / 2)
+				self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() // 2)
 		else:
 			# If not, then do the equivalent of many 'up' key strokes.
 			for i in range(self.number_of_lines_on_screen()):
@@ -328,7 +343,7 @@ class HexView(QtGui.QWidget):
 			else:
 				# If the cursor is invisible, let it end up in the middle of
 				# the screen.
-				self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() / 2)
+				self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() // 2)
 		else:
 			# If not, then do the equivalent of many 'down' key strokes.
 			for i in range(self.number_of_lines_on_screen()):
