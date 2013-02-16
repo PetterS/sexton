@@ -158,6 +158,8 @@ class DataTypes(QMainWindow):
 			bytes = struct.pack(format_string, number)
 		except ValueError:
 			bytes = ''
+		except struct.error:
+			bytes = ''
 		self.set_hexEdit_bytes(bytes)
 
 
@@ -194,7 +196,10 @@ class DataTypes(QMainWindow):
 	@Slot()
 	@exception_handler
 	def on_signedCheckBox_clicked(self):
-		self.on_hexEdit_textEdited()
+		if len(self.ui.hexEdit.text()) == 0:
+			self.update()
+		else:
+			self.on_hexEdit_textEdited()
 
 	@Slot()
 	@exception_handler
