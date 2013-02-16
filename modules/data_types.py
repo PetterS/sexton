@@ -74,6 +74,13 @@ class DataTypes(QMainWindow):
 		text = ''.join( [ "%02X " %  x for x in bytes ] ).strip()
 		self.ui.hexEdit.setText(text)
 
+		# If there is text in the hex data field, the change
+		# button should be activated.
+		if len(text) > 0:
+			self.ui.changeButton.setEnabled(True)
+		else:
+			self.ui.changeButton.setEnabled(False)
+
 	def set_bytes(self, bytes_or_view):
 		current_tab = self.ui.tabWidget.currentWidget()
 
@@ -138,8 +145,12 @@ class DataTypes(QMainWindow):
 			hex_string = self.ui.hexEdit.text()
 			hex_string = hex_string.replace(" ", "")
 			bytes = binascii.unhexlify(hex_string)
+			# This is a valid hex string. Enable the change button.
+			self.ui.changeButton.setEnabled(True)
 		except:
 			bytes = ''
+			# For invalid hex strings, the change button should be disabled.
+			self.ui.changeButton.setEnabled(False)
 		self.set_bytes(bytes)
 
 	@Slot()
@@ -166,7 +177,18 @@ class DataTypes(QMainWindow):
 	@Slot()
 	@exception_handler
 	def on_changeButton_clicked(self):
-		pass
+		# Copy the hex data from hexEdit to the editor in the main
+		# window.
+
+		# First, get the hex data.
+		try:
+			hex_string = self.ui.hexEdit.text()
+			hex_string = hex_string.replace(" ", "")
+			byte_string = binascii.unhexlify(hex_string)
+		except:
+			byte_string = b''
+
+		self.view.write_byte_string(byte_string)
 
 	@Slot()
 	@exception_handler

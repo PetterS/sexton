@@ -154,6 +154,26 @@ class HexView(QtGui.QWidget):
 			self.cursor_hexmode = self.TEXT
 		self.update()
 
+	def write_byte_string(self, byte_string):
+		if len(byte_string) == 0:
+			return
+
+		num_rows = self.number_of_lines_on_screen()
+		view, length = self.data_buffer.read(self.line_width * self.data_line,
+		                                     self.line_width * num_rows)
+		view_pos = ((self.cursor_line - self.data_line) * self.line_width
+			           + self.cursor_column)
+		for b in byte_string:
+			try:
+				view[view_pos] = b
+			except:
+				# We might be outside the file. This is not an error.
+				# Just ignore these bytes.
+				pass
+			view_pos += 1
+
+		self.update()
+
 # PRIVATE METHODS
 
 	def dragEnterEvent(self, e):
