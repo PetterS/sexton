@@ -568,6 +568,8 @@ class Main(PMainWindow):
 		self.status_bar_position_hex     = QLabel("")
 		self.status_bar_position_percent = QLabel("")
 		self.status_bar_file_size        = QLabel("")
+		self.status_bar_modified         = QLabel("")
+		self.statusBar().addPermanentWidget(self.status_bar_modified)
 		self.statusBar().addPermanentWidget(self.status_bar_file_size)
 		self.statusBar().addPermanentWidget(self.status_bar_position)
 		self.statusBar().addPermanentWidget(self.status_bar_position_hex)
@@ -593,6 +595,17 @@ class Main(PMainWindow):
 		if self.data_types:
 			self.data_types.close()
 		PMainWindow.closeEvent(self, event)
+
+	@exception_handler
+	def changeEvent(self, event):
+		if event.type() == QEvent.ActivationChange:
+			# Another window on the desktop has been
+			# activated or deactivated.
+			if self.ui.view.data_buffer is not None:
+				self.ui.view.data_buffer.flush()
+			self.status_bar_modified.setText("")
+			event.accept()
+		PMainWindow.changeEvent(self, event)
 
 	def report_error(self, error, title="Error"):
 		 QtGui.QMessageBox.critical(self, title, error)
@@ -773,6 +786,10 @@ class Main(PMainWindow):
 		self.status_bar_position.setText("{0}".format(position))
 		self.status_bar_position_hex.setText("0x{0:x}".format(position))
 		self.status_bar_position_percent.setText("{0:.2f}%".format(100 * (position + 1) / file_size))
+		if self.ui.view.data_buffer.is_modified():
+			self.status_bar_modified.setText("Modified.")
+		else:
+			self.status_bar_modified.setText("")
 
 def main():
 	app = QtGui.QApplication(sys.argv)

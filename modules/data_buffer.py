@@ -28,6 +28,9 @@ class DataBuffer:
 	def set_modified(self):
 		self.modified = True
 
+	def is_modified(self):
+		return self.modified
+
 
 class TestBuffer(DataBuffer):
 
