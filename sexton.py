@@ -26,7 +26,7 @@ from modules.find_and_replace import FindAndReplace
 
 # Used for saving settings (e.g. in the registry on Windows)
 company_name = 'Petter Strandmark'
-software_name = 'HyperEdit'
+software_name = 'Sexton'
 __version__ = '4.0 alpha'
 
 class HexView(QtGui.QWidget):
@@ -551,7 +551,7 @@ class HexView(QtGui.QWidget):
 class Main(PMainWindow):
 	def __init__(self):
 		PMainWindow.__init__(self, "hexeditor.ui", company_name, software_name)
-		self.setWindowTitle("HyperEdit")
+		self.setWindowTitle(software_name)
 
 		self.ui.view = HexView(self.ui.centralwidget, self)
 		self.ui.horizontalLayout.insertWidget(0,self.ui.view)
@@ -583,7 +583,7 @@ class Main(PMainWindow):
 			self.ui.actionElevate.setEnabled(False)
 
 		if self.ASADMIN in sys.argv:
-			self.setWindowTitle("HyperEdit (ADMINISTRATOR)")
+			self.setWindowTitle(software_name + " (ADMINISTRATOR)")
 
 	@exception_handler
 	def closeEvent(self, event):
@@ -679,11 +679,14 @@ class Main(PMainWindow):
 	@Slot()
 	@exception_handler
 	def on_actionAbout_triggered(self):
-		QMessageBox.about(self, "About HyperEdit",
-			u"""<b>HyperEdit</b> v %s
+		QMessageBox.about(self, "About " + software_name,
+			u"""<b>%s</b> v %s
 			<p>Copyright © 2013 Petter Strandmark.
-			<p>PySide version %s - Qt version %s""" % (__version__,
-			PySide.__version__,  PySide.QtCore.__version__,))
+			<p>PySide version %s - Qt version %s""" %
+				(software_name,
+				__version__,
+				PySide.__version__,
+				PySide.QtCore.__version__,))
 	@Slot()
 	@exception_handler
 	def on_actionClear_Selection_triggered(self):

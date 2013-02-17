@@ -1,4 +1,4 @@
-HyperEdit is a cross-platform hex editor written in Python. Its main goal is to be able to open and search in very large files very quickly.
+Sexton is a cross-platform hex editor written in Python. Its main goal is to be able to open and search in very large files very quickly.
 
 Features
 --------
