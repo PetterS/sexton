@@ -157,6 +157,8 @@ class HexView(QtGui.QWidget):
 	def write_byte_string(self, byte_string):
 		if len(byte_string) == 0:
 			return
+		if self.data_buffer.is_readonly():
+			return
 
 		num_rows = self.number_of_lines_on_screen()
 		view, length = self.data_buffer.read(self.line_width * self.data_line,
@@ -166,6 +168,7 @@ class HexView(QtGui.QWidget):
 		for b in byte_string:
 			try:
 				view[view_pos] = b
+				self.data_buffer.set_modified()
 			except:
 				# We might be outside the file. This is not an error.
 				# Just ignore these bytes.
@@ -580,7 +583,11 @@ class Main(PMainWindow):
 		if self.ASADMIN in sys.argv:
 			self.setWindowTitle("HyperEdit (ADMINISTRATOR)")
 
+	@exception_handler
 	def closeEvent(self, event):
+		if self.ui.view.data_buffer is not None:
+			self.ui.view.data_buffer.flush()
+
 		if self.find_and_replace:
 			self.find_and_replace.close()
 		if self.data_types:
@@ -598,7 +605,7 @@ class Main(PMainWindow):
 		if is_drive:
 			buffer = DriveBuffer(file_name)
 		else:
-			buffer = FileBuffer(file_name)
+			buffer = FileBuffer(file_name, readonly=False)
 		self.ui.view.open(buffer)
 
 		self.ui.fileScrollBar.setEnabled(True)

@@ -54,7 +54,7 @@ class TestBuffer(DataBuffer):
 
 class FileBuffer(DataBuffer):
 
-	def __init__(self, file_name):
+	def __init__(self, file_name, readonly=True):
 		DataBuffer.__init__(self)
 
 		self.file_name = file_name
@@ -62,6 +62,7 @@ class FileBuffer(DataBuffer):
 		self.buffer = bytearray(self.buffer_max_length)
 		self.read_into_buffer(0)
 
+		self.readonly = readonly
 		self.last_pos = -1
 		self.last_length = -1
 
@@ -117,12 +118,23 @@ class FileBuffer(DataBuffer):
 		return self.file_size
 
 	def flush(self):
-		print("Buffer has been modified. Ignored for now.")
+		# Don't write to the file if there are no changes.
+		if not self.modified:
+			return
+		# If there has been changes, the buffer can not be
+		# read-only.
+		if self.readonly:
+			raise Exception("Trying to write a read-only buffer.")
+
+		# Open the file for writing.
+		with open(self.file_name, 'wb') as f:
+			f.seek(self.buffer_start)
+			f.write(self.buffer)
+
 		self.modified = False
 
 	def is_readonly(self):
-		return False
-
+		return self.readonly
 
 class DriveBuffer(DataBuffer):
 
