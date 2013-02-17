@@ -680,7 +680,7 @@ class Main(PMainWindow):
 	@exception_handler
 	def on_actionAbout_triggered(self):
 		QMessageBox.about(self, "About " + software_name,
-			u"""<b>%s</b> v %s
+			"""<b>%s</b> v %s
 			<p>Copyright © 2013 Petter Strandmark.
 			<p>PySide version %s - Qt version %s""" %
 				(software_name,
