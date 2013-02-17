@@ -231,6 +231,11 @@ class HexView(QtGui.QWidget):
 					text_string = '.'
 					position = self.line_width * l + i
 					num  = view[position]
+					# In Python 3.3, memoryviews return int. The following check
+					# is for compatibility with earlier versions.
+					if num.__class__ != int:
+						num = ord(view[position])
+
 					byte_string = '%02X' % num
 					byte = view[position:position + 1].tobytes()
 					text_string = self.bytes_to_string(byte)
@@ -436,10 +441,12 @@ class HexView(QtGui.QWidget):
 			if self.cursor_hexmode == self.TEXT:
 				# TODO: Allow other encodings.
 				byte_string = event.text().encode('utf-8')
-				for b in byte_string:
+				# To memoryview for Python 3.2 compatibility.
+				byte_string = memoryview(byte_string)
+				for i in range(len(byte_string)):
 					view_pos = ((self.cursor_line - self.data_line) * self.line_width 
 					           + self.cursor_column)
-					view[view_pos] = b
+					view[view_pos] = byte_string[i]
 					self.move_cursor_right()
 			else:
 				try:
