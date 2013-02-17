@@ -31,6 +31,11 @@ class FindAndReplace(QMainWindow):
 		self.setMinimumSize(self.ui.minimumSize())
 		self.setMaximumSize(self.ui.maximumSize())
 
+		# Disable by default since searching with an empty string
+		# is not allowed.
+		self.setEnabled(False)
+		self.ui.searchEdit.setEnabled(True)
+
 		# Read settings
 		self.settings = QSettings(company_name, software_name)
 		self.restoreGeometry(self.settings.value("FindAndReplace/geometry"))
@@ -58,8 +63,17 @@ class FindAndReplace(QMainWindow):
 
 	@Slot()
 	@exception_handler
+	def on_searchEdit_textChanged(self):
+		if len(self.ui.searchEdit.text()) > 0:
+			self.setEnabled(True)
+		else:
+			self.setEnabled(False)
+
+	@Slot()
+	@exception_handler
 	def on_findButton_clicked(self):
 		self.setEnabled(False)
+		self.ui.searchEdit.setEnabled(False)
 
 		progress_ticks = 1000000000
 		progress = QProgressDialog("Searching file...", "Cancel", 0, progress_ticks, self.main_window)
@@ -142,3 +156,4 @@ class FindAndReplace(QMainWindow):
 
 		progress.close()
 		self.setEnabled(True)
+		self.ui.searchEdit.setEnabled(True)
