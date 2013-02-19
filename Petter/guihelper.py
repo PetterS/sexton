@@ -54,7 +54,7 @@ def exception_handler(f) :
 # Main window class which loads UI files, supports settings, etc.
 #
 class PMainWindow(QtGui.QMainWindow):
-    def __init__(self, ui_file, company_name, app_name):
+    def __init__(self, ui_file, company_name, app_name, default_width=800, default_height=300):
         QtGui.QMainWindow.__init__(self)
 
         # Set up UI
@@ -66,6 +66,7 @@ class PMainWindow(QtGui.QMainWindow):
         # Size constraints
         self.setMinimumSize(self.ui.minimumSize())
         self.setMaximumSize(self.ui.maximumSize())
+        self.resize(default_width, default_height)
 
         # Settings
         self.settings = QSettings(company_name, app_name)
