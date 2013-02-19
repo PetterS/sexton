@@ -23,7 +23,6 @@ class DataTypes(QMainWindow):
 		# Set up UI
 		loader = QtUiTools.QUiLoader()
 		this_dir = os.path.dirname(__file__)
-		print(this_dir)
 		self.ui = loader.load(os.path.join(this_dir, 'data_types.ui'), None)
 		self.setCentralWidget(self.ui)
 		QMetaObject.connectSlotsByName(self)
