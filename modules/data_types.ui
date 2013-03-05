@@ -164,6 +164,13 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Unix time (32-bit)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCalendarWidget" name="calendarWidget">
          <property name="enabled">
           <bool>false</bool>

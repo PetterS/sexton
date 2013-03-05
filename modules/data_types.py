@@ -3,8 +3,10 @@
 # Petter Strandmark 2013.
 
 import binascii
+import datetime
 import os
 import struct
+import time
 
 from PySide import QtUiTools
 from PySide.QtCore import *
@@ -35,6 +37,10 @@ class DataTypes(QMainWindow):
 		self.settings = QSettings(company_name, software_name)
 		self.restoreGeometry(self.settings.value("DataTypes/geometry"))
 		self.view = None
+
+		# Internal flags.
+		self.date_changed_internally = False
+		self.time_changed_internally = False
 
 	def set_view(self, view):
 		self.view = view
@@ -81,6 +87,16 @@ class DataTypes(QMainWindow):
 		else:
 			self.ui.changeButton.setEnabled(False)
 
+	def date_and_time_to_bytes(self):
+		qdate = self.ui.calendarWidget.selectedDate()
+		qtime = self.ui.timeEdit.time()
+		dt = datetime.datetime(qdate.year(), qdate.month(), qdate.day(),
+		                       qtime.hour(), qtime.minute(), qtime.second())
+
+		number = int(time.mktime(dt.timetuple()))
+		bytes = struct.pack("I", number)
+		return bytes
+
 	def set_bytes(self, bytes_or_view):
 		current_tab = self.ui.tabWidget.currentWidget()
 
@@ -94,7 +110,7 @@ class DataTypes(QMainWindow):
 			if isinstance(bytes_or_view, memoryview):
 				bytes_or_view = bytes_or_view[:size_needed].tobytes()
 
-			# Try and parse a number.
+			# Try to parse a number.
 			self.ui.numberEdit.setEnabled(True)
 			if printf_string == '%d':
 				self.ui.signedCheckBox.setEnabled(True)
@@ -118,7 +134,36 @@ class DataTypes(QMainWindow):
 				self.set_hexEdit_bytes(number_bytes)
 
 		elif current_tab == self.ui.tab_dates:
-			pass
+
+			size_needed = 4
+			if isinstance(bytes_or_view, memoryview):
+				bytes_or_view = bytes_or_view[:size_needed].tobytes()
+
+
+			# Try to parse a number.
+			number = None
+			try:
+				assert(size_needed == len(bytes_or_view))
+				number = struct.unpack('I', bytes_or_view)[0]
+				# Success. Enable calendar.
+				self.ui.calendarWidget.setEnabled(True)
+				self.ui.timeEdit.setEnabled(True)
+			except:
+				self.ui.numberEdit.setText("n/a")
+				self.ui.numberEdit.setEnabled(False)
+				self.ui.calendarWidget.setEnabled(False)
+				self.ui.timeEdit.setEnabled(False)
+
+			if number is not None:
+				localtime = time.localtime(number)
+				qdate = QDate(localtime.tm_year, localtime.tm_mon, localtime.tm_mday)
+				qtime = QTime(localtime.tm_hour, localtime.tm_min, localtime.tm_sec)
+
+				self.date_changed_internally = True
+				self.time_changed_internally = True
+				self.ui.calendarWidget.setSelectedDate(qdate)
+				self.ui.timeEdit.setTime(qtime)
+				self.set_hexEdit_bytes(bytes_or_view)
 
 
 	def update(self):
@@ -173,6 +218,27 @@ class DataTypes(QMainWindow):
 			bytes = ''
 		self.set_hexEdit_bytes(bytes)
 
+	@Slot()
+	@exception_handler
+	def on_timeEdit_timeChanged(self):
+		# We only want to capture changes made by the user.
+		if self.time_changed_internally:
+			self.time_changed_internally = False
+			return
+
+		bytes = self.date_and_time_to_bytes()
+		self.set_hexEdit_bytes(bytes)
+
+	@Slot()
+	@exception_handler
+	def on_calendarWidget_selectionChanged(self):
+		# We only want to capture changes made by the user.
+		if self.date_changed_internally:
+			self.date_changed_internally = False
+			return
+
+		bytes = self.date_and_time_to_bytes()
+		self.set_hexEdit_bytes(bytes)
 
 	@Slot()
 	@exception_handler
