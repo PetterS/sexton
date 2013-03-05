@@ -17,7 +17,8 @@ try:
 except ImportError:
 	pywin32_shell = None
 
-from Petter.guihelper import invoke_in_main_thread, exception_handler, PMainWindow
+from Petter.guihelper import invoke_in_main_thread, \
+                             exception_handler, PMainWindow
 
 from modules.data_buffer import *
 from modules.data_types import DataTypes
@@ -28,6 +29,7 @@ from modules.find_and_replace import FindAndReplace
 company_name = 'Petter Strandmark'
 software_name = 'Sexton'
 __version__ = '4.0 alpha'
+
 
 class HexView(QtGui.QWidget):
 	HEX_LEFT = object()
@@ -60,11 +62,11 @@ class HexView(QtGui.QWidget):
 		cursor_disabled_color.setGreenF(window_color.greenF() - 0.1)
 		cursor_disabled_color.setBlueF(window_color.blueF()   - 0.1)
 
-		self.cursor_color = QColor(255,0,0)
-		self.text_color   = QColor(0,0,0)
-		self.cursor_background_brush          = QBrush(QColor(255,255,1))
+		self.cursor_color = QColor(255, 0, 0)
+		self.text_color   = QColor(0, 0, 0)
+		self.cursor_background_brush          = QBrush(QColor(255, 255, 1))
 		self.cursor_disabled_background_brush = QBrush(cursor_disabled_color)
-		self.selection_background_brush = QBrush(QColor(180,255,180))
+		self.selection_background_brush       = QBrush(QColor(180, 255, 180))
 
 		# Accept key strokes.
 		self.setFocusPolicy(Qt.WheelFocus)
@@ -86,7 +88,8 @@ class HexView(QtGui.QWidget):
 			self.data_buffer = None
 			raise RuntimeError('File is empty.')
 		# Is the cursor outside the file?
-		if self.cursor_line * self.line_width + self.cursor_column >= self.data_buffer.length():
+		if self.cursor_line * self.line_width + self.cursor_column \
+		   >= self.data_buffer.length():
 			self.set_cursor_position(self.data_buffer.length() - 1)
 
 		self.update()
@@ -107,7 +110,7 @@ class HexView(QtGui.QWidget):
 
 	def set_cursor_position(self, pos):
 		self.cursor_line   = pos // self.line_width
-		self.cursor_column = pos %  self.line_width
+		self.cursor_column = pos % self.line_width
 
 		# Is the cursor visible?
 		if self.is_cursor_visible():
@@ -117,7 +120,8 @@ class HexView(QtGui.QWidget):
 		else:
 			# If the cursor is not visible, let it end up in the
 			# middle of the screen.
-			self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() // 2)
+			self.data_line = max(0, self.cursor_line -
+			                        self.number_of_lines_on_screen() // 2)
 
 		self.main_window.update_line(self.data_line)
 		self.update()
@@ -130,7 +134,7 @@ class HexView(QtGui.QWidget):
 	def get_cursor_position(self):
 		return self.cursor_line * self.line_width + self.cursor_column
 
-	def data_at_position(self, position, length = 10):
+	def data_at_position(self, position, length=10):
 		view, length = self.data_buffer.read(position, length)
 		return view
 
@@ -230,7 +234,7 @@ class HexView(QtGui.QWidget):
 				for i in range(min(self.line_width, length - self.line_width * l)):
 					text_string = '.'
 					position = self.line_width * l + i
-					num  = view[position]
+					num = view[position]
 					# In Python 3.3, memoryviews return int. The following check
 					# is for compatibility with earlier versions.
 					if num.__class__ != int:
@@ -245,7 +249,7 @@ class HexView(QtGui.QWidget):
 						# We are at the data cursor.
 						selected = True
 					elif self.selection_start <= global_offset and \
-					     global_offset < self.selection_end:
+					                             global_offset < self.selection_end:
 						painter.setBackground(self.selection_background_brush)
 						painter.setBackgroundMode(Qt.OpaqueMode)
 						byte_string += ' '
@@ -276,7 +280,8 @@ class HexView(QtGui.QWidget):
 
 					painter.drawText(byte_point, byte_string[1])
 
-					text_point = QPoint(600 + self.character_width*i, (l + 1) * self.line_height)
+					text_point = QPoint(600 + self.character_width*i,
+					                    (l + 1) * self.line_height)
 					if selected and self.cursor_hexmode == self.TEXT:
 						painter.setBackground(self.cursor_background_brush)
 						painter.setBackgroundMode(Qt.OpaqueMode)
@@ -294,7 +299,7 @@ class HexView(QtGui.QWidget):
 
 	def is_cursor_visible(self):
 		if self.cursor_line >= self.data_line and \
-		   self.cursor_line <  self.data_line + self.number_of_lines_on_screen():
+		   self.cursor_line < self.data_line + self.number_of_lines_on_screen():
 			cursor_visible = True
 		else:
 			cursor_visible = False
@@ -346,7 +351,8 @@ class HexView(QtGui.QWidget):
 			else:
 				# If the cursor is invisible, let it end up in the middle of
 				# the screen.
-				self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() // 2)
+				self.data_line = \
+					max(0, self.cursor_line - self.number_of_lines_on_screen() // 2)
 		else:
 			# If not, then do the equivalent of many 'up' key strokes.
 			for i in range(self.number_of_lines_on_screen()):
@@ -373,7 +379,8 @@ class HexView(QtGui.QWidget):
 			else:
 				# If the cursor is invisible, let it end up in the middle of
 				# the screen.
-				self.data_line = max(0, self.cursor_line - self.number_of_lines_on_screen() // 2)
+				self.data_line = \
+				max(0, self.cursor_line - self.number_of_lines_on_screen() // 2)
 		else:
 			# If not, then do the equivalent of many 'down' key strokes.
 			for i in range(self.number_of_lines_on_screen()):
@@ -391,7 +398,8 @@ class HexView(QtGui.QWidget):
 	def move_cursor_right(self):
 		pos = self.line_width * self.cursor_line + self.cursor_column
 		pos += 1
-		if self.cursor_column < self.line_width - 1 and pos < self.data_buffer.length():
+		if self.cursor_column < self.line_width - 1 and \
+		   pos < self.data_buffer.length():
 			self.cursor_column += 1
 		elif pos < self.data_buffer.length():
 			self.cursor_column = 0
@@ -444,14 +452,14 @@ class HexView(QtGui.QWidget):
 				# To memoryview for Python 3.2 compatibility.
 				byte_string = memoryview(byte_string)
 				for i in range(len(byte_string)):
-					view_pos = ((self.cursor_line - self.data_line) * self.line_width 
+					view_pos = ((self.cursor_line - self.data_line) * self.line_width
 					           + self.cursor_column)
 					view[view_pos] = byte_string[i]
 					self.move_cursor_right()
 			else:
 				try:
 					input_digit = int(event.text(), 16)
-					view_pos = ((self.cursor_line - self.data_line) * self.line_width 
+					view_pos = ((self.cursor_line - self.data_line) * self.line_width
 					           + self.cursor_column)
 					if self.cursor_hexmode == self.HEX_LEFT:
 						new_byte = 16 * input_digit + (view[view_pos] & 0x0F)
@@ -489,7 +497,8 @@ class HexView(QtGui.QWidget):
 			if 180 + 25*col <= x and x <= 180 + 25*col + 20:
 				new_col = col
 				break
-			if 600 + col * self.character_width <= x and x <= 600 + (col + 1) * self.character_width:
+			if 600 + col*self.character_width <= x and \
+			   x <= 600 + (col+1)*self.character_width:
 				new_col = col
 				break
 
@@ -552,6 +561,8 @@ class HexView(QtGui.QWidget):
 
 		self.main_window.update_line(self.data_line)
 		self.update()
+
+
 #
 # MAIN WINDOW
 #
@@ -561,7 +572,7 @@ class Main(PMainWindow):
 		self.setWindowTitle(software_name)
 
 		self.ui.view = HexView(self.ui.centralwidget, self)
-		self.ui.horizontalLayout.insertWidget(0,self.ui.view)
+		self.ui.horizontalLayout.insertWidget(0, self.ui.view)
 
 		self.ui.fileScrollBar.setEnabled(False)
 
@@ -621,7 +632,7 @@ class Main(PMainWindow):
 	def resizeEvent(self, event):
 		PMainWindow.resizeEvent(self, event)
 
-	def open_file(self, file_name, is_drive = False):
+	def open_file(self, file_name, is_drive=False):
 		if is_drive:
 			buffer = DriveBuffer(file_name)
 		else:
@@ -644,9 +655,11 @@ class Main(PMainWindow):
 			wanted_size = self.ui.view.number_of_rows() - 10
 			self.scrollbar_factor = wanted_size // 1000**3
 			self.ui.fileScrollBar.setMaximum(wanted_size // self.scrollbar_factor)
-			self.ui.fileScrollBar.setPageStep(self.ui.view.number_of_lines_on_screen() // self.scrollbar_factor)
+			self.ui.fileScrollBar.setPageStep(
+				self.ui.view.number_of_lines_on_screen() // self.scrollbar_factor)
 
-			self.statusBar().showMessage("Warning: Scrollbar not exact due to Qt limitation.")
+			self.statusBar().showMessage(
+				"Warning: Scrollbar not exact due to Qt limitation.")
 			self.ui.fileScrollBar.setEnabled(True)
 
 		# Set the file size in the status bar.
@@ -670,8 +683,11 @@ class Main(PMainWindow):
 	def on_actionOpen_triggered(self):
 		default_dir = self.settings.value("default_dir", '')
 		filter = "All files (*)"
-		(file_name, mask)=QtGui.QFileDialog.getOpenFileName(self,"Choose a file", default_dir, filter)
-		if file_name :
+		(file_name, mask) = QtGui.QFileDialog.getOpenFileName(self,
+		                                                      "Choose a file",
+		                                                      default_dir,
+		                                                      filter)
+		if file_name:
 			dir, fname = os.path.split(file_name)
 			self.settings.setValue("default_dir", dir)
 			self.open_file(file_name)
@@ -694,6 +710,7 @@ class Main(PMainWindow):
 				__version__,
 				PySide.__version__,
 				PySide.QtCore.__version__,))
+
 	@Slot()
 	@exception_handler
 	def on_actionClear_Selection_triggered(self):
@@ -729,7 +746,10 @@ class Main(PMainWindow):
 				script = os.path.abspath(sys.argv[0])
 				params = ' '.join(["\"" + script + "\""] + sys.argv[1:] + [self.ASADMIN])
 				print("Elevating...")
-				pywin32_shell.ShellExecuteEx(lpVerb='runas', lpFile=sys.executable, lpParameters=params, nShow=1)
+				pywin32_shell.ShellExecuteEx(lpVerb='runas',
+				                             lpFile=sys.executable,
+				                             lpParameters=params,
+				                             nShow=1)
 				self.close()
 
 	@Slot()
@@ -747,7 +767,7 @@ class Main(PMainWindow):
 		if self.ui.view.cursor_hexmode == self.ui.view.TEXT:
 			string_data = self.ui.view.bytes_to_string(byte_data)
 		else:
-			string_data = ''.join( ["%02X " %  x for x in byte_data] ).strip()
+			string_data = ''.join(["%02X " % x for x in byte_data]).strip()
 		self.clipboard.setText(string_data)
 
 	@Slot()
@@ -795,15 +815,17 @@ class Main(PMainWindow):
 		file_size = self.ui.view.data_buffer.length()
 		self.status_bar_position.setText("{0}".format(position))
 		self.status_bar_position_hex.setText("0x{0:x}".format(position))
-		self.status_bar_position_percent.setText("{0:.2f}%".format(100 * (position + 1) / file_size))
+		self.status_bar_position_percent.setText(
+			"{0:.2f}%".format(100 * (position + 1) / file_size))
 		if self.ui.view.data_buffer.is_modified():
 			self.status_bar_modified.setText("Modified.")
 		else:
 			self.status_bar_modified.setText("")
 
+
 def main():
 	app = QtGui.QApplication(sys.argv)
-	window=Main()
+	window = Main()
 	window.show()
 
 	icon = QtGui.QIcon('images/icon.png')

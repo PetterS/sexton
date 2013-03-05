@@ -19,11 +19,14 @@ from PySide.QtGui import *
 
 from Petter.guihelper import exception_handler, invoke_in_main_thread
 
+
 class DriveDialog(QDialog):
 	def __init__(self, main_window, company_name, software_name):
 		QDialog.__init__(self)
 		self.setWindowTitle("Open Drive")
-		self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+		self.setWindowFlags(Qt.CustomizeWindowHint |
+		                    Qt.WindowTitleHint |
+		                    Qt.WindowCloseButtonHint)
 
 		self.main_window = main_window
 

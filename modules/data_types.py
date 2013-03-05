@@ -14,11 +14,14 @@ from PySide.QtGui import *
 
 from Petter.guihelper import exception_handler
 
+
 class DataTypes(QMainWindow):
 	def __init__(self, main_window, company_name, software_name):
 		QMainWindow.__init__(self)
 		self.setWindowTitle("Data Types")
-		self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+		self.setWindowFlags(Qt.CustomizeWindowHint |
+		                    Qt.WindowTitleHint |
+		                    Qt.WindowCloseButtonHint)
 
 		self.main_window = main_window
 
@@ -77,7 +80,7 @@ class DataTypes(QMainWindow):
 		return format_string, printf_string
 
 	def set_hexEdit_bytes(self, bytes):
-		text = ''.join( [ "%02X " %  x for x in bytes ] ).strip()
+		text = ''.join(["%02X " % x for x in bytes]).strip()
 		self.ui.hexEdit.setText(text)
 
 		# If there is text in the hex data field, the change
@@ -139,7 +142,6 @@ class DataTypes(QMainWindow):
 			if isinstance(bytes_or_view, memoryview):
 				bytes_or_view = bytes_or_view[:size_needed].tobytes()
 
-
 			# Try to parse a number.
 			number = None
 			try:
@@ -164,7 +166,6 @@ class DataTypes(QMainWindow):
 				self.ui.calendarWidget.setSelectedDate(qdate)
 				self.ui.timeEdit.setTime(qtime)
 				self.set_hexEdit_bytes(bytes_or_view)
-
 
 	def update(self):
 		if not self.view:

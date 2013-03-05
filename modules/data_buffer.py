@@ -9,6 +9,7 @@ try:
 except:
 	win32file = None
 
+
 class DataBuffer:
 	def __init__(self):
 		self.modified = False
@@ -102,7 +103,9 @@ class FileBuffer(DataBuffer):
 		# We cannot read past the end of the file.
 		read_length = min(length, self.file_size - pos)
 		# Is the requested interval outside the current buffer?
-		if pos < self.buffer_start or pos + read_length > self.buffer_start + self.buffer_length:
+		if pos < self.buffer_start or pos + read_length \
+		   > self.buffer_start + self.buffer_length:
+
 			self.read_into_buffer(max(0, pos - self.buffer_max_length // 2))
 			the_view = self.view[pos - self.buffer_start:]
 
@@ -139,6 +142,7 @@ class FileBuffer(DataBuffer):
 	def is_readonly(self):
 		return self.readonly
 
+
 class DriveBuffer(DataBuffer):
 
 	def __init__(self, drive_name):
@@ -161,10 +165,12 @@ class DriveBuffer(DataBuffer):
 			drive_device_name = "\\\\.\\" + self.drive_name.strip("\\")
 			hfile = win32file.CreateFile(drive_device_name,
 			                             win32file.GENERIC_READ,
-			                             win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
+			                             win32file.FILE_SHARE_READ
+			                             | win32file.FILE_SHARE_WRITE,
 			                             None,
 			                             win32file.OPEN_EXISTING,
-			                             win32file.FILE_ATTRIBUTE_NORMAL | win32file.FILE_FLAG_RANDOM_ACCESS,
+			                             win32file.FILE_ATTRIBUTE_NORMAL
+			                             | win32file.FILE_FLAG_RANDOM_ACCESS,
 			                             None)
 			# Set the read position. It is important that
 			# we read a multiple of the sector size.
@@ -178,7 +184,9 @@ class DriveBuffer(DataBuffer):
 			win32file.CloseHandle(hfile)
 		except pywintypes.error as err:
 			if err.winerror == 5:
-				raise Exception("Access denied.\n\nAdministrator privileges are required to open drives.\nUse File->Elevate Process.")
+				raise Exception("Access denied.\n\nAdministrator privileges "
+				                "are required to open drives.\nUse File->"
+				                "Elevate Process.")
 			else:
 				raise Exception(err.strerror)
 
@@ -190,7 +198,8 @@ class DriveBuffer(DataBuffer):
 		# We cannot read past the end of the file.
 		read_length = min(length, self.file_size - pos)
 		# Is the requested interval outside the current buffer?
-		if pos < self.buffer_start or pos + read_length > self.buffer_start + self.buffer_length:
+		if pos < self.buffer_start or pos + read_length \
+		   > self.buffer_start + self.buffer_length:
 			# We want to read before the actual position to cache data.
 			read_position = pos - self.buffer_max_length // 2
 			# Move back to an even sector size.

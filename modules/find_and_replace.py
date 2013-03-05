@@ -12,11 +12,14 @@ from PySide.QtGui import *
 
 from Petter.guihelper import exception_handler
 
+
 class FindAndReplace(QMainWindow):
 	def __init__(self, main_window, company_name, software_name):
 		QMainWindow.__init__(self)
 		self.setWindowTitle("Find and Replace")
-		self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+		self.setWindowFlags(Qt.CustomizeWindowHint |
+		                    Qt.WindowTitleHint |
+		                    Qt.WindowCloseButtonHint)
 
 		self.main_window = main_window
 
@@ -39,8 +42,10 @@ class FindAndReplace(QMainWindow):
 		# Read settings
 		self.settings = QSettings(company_name, software_name)
 		self.restoreGeometry(self.settings.value("FindAndReplace/geometry"))
-		self.ui.encodingEdit.setText(self.settings.value("FindAndReplace/encoding", "utf-8"))
-		self.ui.searchEdit.setText(self.settings.value("FindAndReplace/search", ""))
+		self.ui.encodingEdit.setText(self.settings.value("FindAndReplace/encoding",
+		                                                 "utf-8"))
+		self.ui.searchEdit.setText(self.settings.value("FindAndReplace/search",
+		                                               ""))
 
 		self.view = None
 
@@ -53,8 +58,10 @@ class FindAndReplace(QMainWindow):
 
 	def closeEvent(self, event):
 		self.settings.setValue("FindAndReplace/geometry", self.saveGeometry())
-		self.settings.setValue("FindAndReplace/encoding", self.ui.encodingEdit.text())
-		self.settings.setValue("FindAndReplace/search", self.ui.searchEdit.text())
+		self.settings.setValue("FindAndReplace/encoding",
+		                       self.ui.encodingEdit.text())
+		self.settings.setValue("FindAndReplace/search",
+		                       self.ui.searchEdit.text())
 		QMainWindow.closeEvent(self, event)
 
 	def setEnabled(self, enabled):
@@ -76,7 +83,11 @@ class FindAndReplace(QMainWindow):
 		self.ui.searchEdit.setEnabled(False)
 
 		progress_ticks = 1000000000
-		progress = QProgressDialog("Searching file...", "Cancel", 0, progress_ticks, self.main_window)
+		progress = QProgressDialog("Searching file...",
+		                           "Cancel",
+		                           0,
+		                           progress_ticks,
+		                           self.main_window)
 		progress.setWindowModality(Qt.WindowModal)
 		progress.setWindowTitle("Find and Replace")
 		progress.setAutoClose(False)
@@ -152,7 +163,6 @@ class FindAndReplace(QMainWindow):
 				wrapped_around = True
 			if wrapped_around and current_pos >= start_pos + step_length:
 				break
-
 
 		progress.close()
 		self.setEnabled(True)
