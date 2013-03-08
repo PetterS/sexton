@@ -569,7 +569,10 @@ class HexView(QtGui.QWidget):
 #
 class Main(PMainWindow):
 	def __init__(self):
-		PMainWindow.__init__(self, "hexeditor.ui", company_name, software_name)
+		this_dir = os.path.dirname(__file__)
+		ui_file = os.path.join(this_dir, 'hexeditor.ui')
+		PMainWindow.__init__(self, ui_file, company_name, software_name)
+
 		self.setWindowTitle(software_name)
 
 		self.ui.view = HexView(self.ui.centralwidget, self)
