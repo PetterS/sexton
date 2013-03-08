@@ -84,6 +84,9 @@ class HexView(QtGui.QWidget):
 		self.update()
 
 	def open(self, data_buffer):
+		if self.data_buffer is not None:
+			self.data_buffer.flush()
+
 		self.data_buffer = data_buffer
 		if self.data_buffer.length() == 0:
 			self.data_buffer = None

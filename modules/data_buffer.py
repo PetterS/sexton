@@ -14,6 +14,9 @@ class DataBuffer:
 	def __init__(self):
 		self.modified = False
 
+	def __del__(self):
+		self.flush()
+
 	def read(self, pos, length):
 		return None, 0
 
