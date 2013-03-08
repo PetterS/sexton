@@ -42,18 +42,18 @@ class TestBuffer(DataBuffer):
 		DataBuffer.__init__(self)
 
 		self.data_length = length
-		self.buffer = bytes(self.data_length)
+		self.buffer = bytearray(self.data_length)
 		self.view = memoryview(self.buffer)
 
 	def read(self, pos, length):
 		read_length = min(length, self.data_length - pos)
 		return self.view[pos:], read_length
 
+	def is_readonly(self):
+		return False
+
 	def length(self):
 		return self.data_length
-
-	def max_read_length(self):
-		return 0
 
 	def flush(self):
 		pass
