@@ -3,6 +3,7 @@
 #
 # Petter Strandmark 2013.
 
+import argparse
 import os
 import sys
 
@@ -632,6 +633,7 @@ class Main(PMainWindow):
 	def resizeEvent(self, event):
 		PMainWindow.resizeEvent(self, event)
 
+	@exception_handler
 	def open_file(self, file_name, is_drive=False):
 		if is_drive:
 			buffer = DriveBuffer(file_name)
@@ -827,6 +829,14 @@ def main():
 	app = QtGui.QApplication(sys.argv)
 	window = Main()
 	window.show()
+
+	# Parse command line.
+	parser = argparse.ArgumentParser()
+	parser.add_argument('file', type=str, nargs='?')
+	parser.add_argument('--drive', action='store_true')
+	args = parser.parse_args()
+	if args.file is not None:
+		window.open_file(args.file, args.drive)
 
 	icon = QtGui.QIcon('images/icon.png')
 	app.setWindowIcon(icon)
