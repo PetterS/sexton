@@ -1,9 +1,7 @@
 language: python
 python:
  - "3.2"
-before_install:
- - chmod +x ./test_sexton.py
 install:
  - pip install PySide
 script:
- - ./test_sexton.py
+ - python test_sexton.py
