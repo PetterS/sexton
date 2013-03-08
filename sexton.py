@@ -127,7 +127,8 @@ class HexView(QtGui.QWidget):
 			self.data_line = max(0, self.cursor_line -
 			                        self.number_of_lines_on_screen() // 2)
 
-		self.main_window.update_line(self.data_line)
+		if self.main_window is not None:
+			self.main_window.update_line(self.data_line)
 		self.update()
 
 	def set_selection(self, start, end):
@@ -573,7 +574,11 @@ class HexView(QtGui.QWidget):
 class Main(PMainWindow):
 	def __init__(self):
 		this_dir = os.path.dirname(__file__)
-		PMainWindow.__init__(self, 'hexeditor.ui', this_dir, company_name, software_name)
+		PMainWindow.__init__(self,
+		                     'hexeditor.ui',
+		                     this_dir,
+		                     company_name,
+		                     software_name)
 
 		self.setWindowTitle(software_name)
 
@@ -585,7 +590,7 @@ class Main(PMainWindow):
 		self.clipboard = QApplication.clipboard()
 
 		self.find_and_replace = None
-		self.data_types = None
+		self.data_types       = None
 
 		# Set up status bar
 		self.status_bar_position         = QLabel("")
