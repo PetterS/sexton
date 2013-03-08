@@ -1,4 +1,6 @@
 
+import os
+
 from PySide import QtCore, QtGui, QtUiTools
 from PySide.QtCore import *
 
@@ -65,6 +67,7 @@ def exception_handler(f):
 class PMainWindow(QtGui.QMainWindow):
     def __init__(self,
                  ui_file,
+                 ui_dir,
                  company_name,
                  app_name,
                  default_width=800,
@@ -73,7 +76,9 @@ class PMainWindow(QtGui.QMainWindow):
 
         # Set up UI
         loader = QtUiTools.QUiLoader()
-        self.ui = loader.load(ui_file, None)
+        loader.setWorkingDirectory(ui_dir)
+        ui_full_file_name = os.path.join(ui_dir, ui_file)
+        self.ui = loader.load(ui_full_file_name, None)
         self.setCentralWidget(self.ui)
         QtCore.QMetaObject.connectSlotsByName(self)
 

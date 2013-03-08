@@ -573,8 +573,7 @@ class HexView(QtGui.QWidget):
 class Main(PMainWindow):
 	def __init__(self):
 		this_dir = os.path.dirname(__file__)
-		ui_file = os.path.join(this_dir, 'hexeditor.ui')
-		PMainWindow.__init__(self, ui_file, company_name, software_name)
+		PMainWindow.__init__(self, 'hexeditor.ui', this_dir, company_name, software_name)
 
 		self.setWindowTitle(software_name)
 
@@ -844,7 +843,9 @@ def main():
 	if args.file is not None:
 		window.open_file(args.file, args.drive)
 
-	icon = QtGui.QIcon('images/icon.png')
+	this_dir = os.path.dirname(__file__)
+	icon_file = os.path.join(this_dir, 'images/icon.png')
+	icon = QtGui.QIcon(icon_file)
 	app.setWindowIcon(icon)
 	window.setWindowIcon(icon)
 
