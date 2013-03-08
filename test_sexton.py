@@ -36,9 +36,6 @@ class TestHexView(unittest.TestCase):
 		self.assertEqual(data_buffer.buffer[4], ord(b'e'))
 		self.assertEqual(data_buffer.buffer[5], ord(b'r'))
 
-	def test_petter(self):
-		pass
-
 if __name__ == '__main__':
 	app = QtGui.QApplication(sys.argv)
 	unittest.main(verbosity=2)
