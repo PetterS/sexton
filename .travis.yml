@@ -1,11 +1,9 @@
 language: python
 python:
- - "3.2"
+ - 3.3
 install:
  - echo | sudo add-apt-repository ppa:pyside
  - sudo apt-get update -qq
- - sudo apt-get install -qq python-pyside
  - sudo apt-get install -qq python3-pyside
- - export PYTHONPATH="$PYTHONPATH:/usr/lib/python3.2/dist-packages/"
 script:
  - python test_sexton.py
