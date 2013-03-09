@@ -6,5 +6,6 @@ install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq python-pyside
  - sudo apt-get install -qq python3-pyside
+ - export PYTHONPATH="$PYTHONPATH:/usr/lib/python3.2/dist-packages/"
 script:
  - python test_sexton.py
