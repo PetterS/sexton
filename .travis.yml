@@ -2,6 +2,8 @@ language: python
 python:
  - "3.2"
 install:
- - pip install PySide
+ - sudo add-apt-repository ppa:pyside
+ - sudo apt-get update
+ - sudo apt-get install python3-pyside
 script:
  - python test_sexton.py
