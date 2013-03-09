@@ -4,6 +4,7 @@ python:
 install:
  - echo | sudo add-apt-repository ppa:pyside
  - sudo apt-get update -qq
+ - sudo apt-get install -qq python-pyside
  - sudo apt-get install -qq python3-pyside
 script:
  - python test_sexton.py
