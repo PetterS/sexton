@@ -607,11 +607,10 @@ class Main(PMainWindow):
 		# Set up scoll bar
 		self.ui.fileScrollBar.ignore_valueChanged = False
 
-		self.ASADMIN = 'asadmin'
-		if pywin32_shell is None or self.ASADMIN in sys.argv:
+		if pywin32_shell is None or ASADMIN in sys.argv:
 			self.ui.actionElevate.setEnabled(False)
 
-		if self.ASADMIN in sys.argv:
+		if ASADMIN in sys.argv:
 			self.setWindowTitle(software_name + " (ADMINISTRATOR)")
 
 	@exception_handler
@@ -754,9 +753,9 @@ class Main(PMainWindow):
 	@exception_handler
 	def on_actionElevate_triggered(self):
 		if pywin32_shell is not None:
-			if self.ASADMIN not in sys.argv:
+			if ASADMIN not in sys.argv:
 				script = os.path.abspath(sys.argv[0])
-				params = ' '.join(["\"" + script + "\""] + sys.argv[1:] + [self.ASADMIN])
+				params = ' '.join(["\"" + script + "\""] + sys.argv[1:] + [ASADMIN])
 				print("Elevating...")
 				pywin32_shell.ShellExecuteEx(lpVerb='runas',
 				                             lpFile=sys.executable,
@@ -835,6 +834,9 @@ class Main(PMainWindow):
 			self.status_bar_modified.setText("")
 
 
+ASADMIN = '--asadmin'
+
+
 def main():
 	app = QtGui.QApplication(sys.argv)
 	window = Main()
@@ -844,7 +846,9 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('file', type=str, nargs='?')
 	parser.add_argument('--drive', action='store_true')
+	parser.add_argument(ASADMIN, action='store_true')
 	args = parser.parse_args()
+
 	if args.file is not None:
 		window.open_file(args.file, args.drive)
 
