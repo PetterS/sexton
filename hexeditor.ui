@@ -75,9 +75,17 @@
     </property>
     <addaction name="actionData_Types"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionCreate_Shortcut"/>
+    <addaction name="actionRemove_Shortcut"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuView"/>
+   <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpen">
@@ -183,6 +191,22 @@
    </property>
    <property name="text">
     <string>Elevate Process (Windows)...</string>
+   </property>
+  </action>
+  <action name="actionCreate_Shortcut">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Create &quot;Send To&quot; Shortcut</string>
+   </property>
+  </action>
+  <action name="actionRemove_Shortcut">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Remove &quot;Send To&quot; Shortcut</string>
    </property>
   </action>
  </widget>

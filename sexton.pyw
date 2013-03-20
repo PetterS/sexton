@@ -25,6 +25,7 @@ from modules.data_buffer import *
 from modules.data_types import DataTypes
 from modules.drives import DriveDialog
 from modules.find_and_replace import FindAndReplace
+from modules.platform import create_platform
 
 # Used for saving settings (e.g. in the registry on Windows)
 company_name = 'Petter Strandmark'
@@ -613,6 +614,14 @@ class Main(PMainWindow):
 		if ASADMIN in sys.argv:
 			self.setWindowTitle(software_name + " (ADMINISTRATOR)")
 
+		# Platform object is needed as an interface to the shell.
+		self.platform = create_platform(__file__)
+		if self.platform.can_install_shortcut():
+			if self.platform.has_shortcut():
+				self.ui.actionRemove_Shortcut.setEnabled(True)
+			else:
+				self.ui.actionCreate_Shortcut.setEnabled(True)
+
 	@exception_handler
 	def closeEvent(self, event):
 		if self.ui.view.data_buffer is not None:
@@ -726,6 +735,20 @@ class Main(PMainWindow):
 	@exception_handler
 	def on_actionClear_Selection_triggered(self):
 		self.ui.view.clear_selection()
+
+	@Slot()
+	@exception_handler
+	def on_actionCreate_Shortcut_triggered(self):
+		self.platform.install_shortcut()
+		self.ui.actionRemove_Shortcut.setEnabled(True)
+		self.ui.actionCreate_Shortcut.setEnabled(False)
+
+	@Slot()
+	@exception_handler
+	def on_actionRemove_Shortcut_triggered(self):
+		self.platform.uninstall_shortcut()
+		self.ui.actionRemove_Shortcut.setEnabled(False)
+		self.ui.actionCreate_Shortcut.setEnabled(True)
 
 	@Slot()
 	@exception_handler
