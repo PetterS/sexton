@@ -1,5 +1,7 @@
 Sexton is a cross-platform hex editor written in Python. Its main goal is to be able to open and search in very large files very quickly.
 
+![Alt](images/sexton.png "Screenshot")
+
 Features
 --------
 * Search with unicode strings in any encoding, hexadecimal, and regular expressions.
