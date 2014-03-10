@@ -4,6 +4,6 @@ python:
  - 3.3
 install:
  - sudo apt-get update -qq
- - sudo apt-get install -qq python3-pyside
+ - pip install --use-wheel PySide
 script:
  - python test_sexton.py
