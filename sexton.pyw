@@ -399,7 +399,7 @@ class HexView(QtGui.QWidget):
 				self.cursor_column = self.line_width - 1
 				self.scroll_to_cursor()
 		else:
-			self.cursor_column = self.cursor_column - 1
+			self.cursor_column -= 1
 
 	def move_cursor_right(self):
 		pos = self.line_width * self.cursor_line + self.cursor_column
