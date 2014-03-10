@@ -9,6 +9,7 @@ from PySide import QtGui
 import sexton
 from modules.data_buffer import TestBuffer
 
+app = QtGui.QApplication(sys.argv)
 
 class TestHexView(unittest.TestCase):
 
@@ -37,5 +38,4 @@ class TestHexView(unittest.TestCase):
 		self.assertEqual(data_buffer.buffer[5], ord(b'r'))
 
 if __name__ == '__main__':
-	app = QtGui.QApplication(sys.argv)
 	unittest.main(verbosity=2)
