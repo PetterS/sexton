@@ -4,17 +4,20 @@
 import unittest
 import sys
 
-from PySide import QtGui
+from PySide import QtCore, QtGui
 
 import sexton
 from modules.data_buffer import TestBuffer
 
-app = QtGui.QApplication(sys.argv)
+# Create an application without GUI support. This allows
+# tests to be run without an X server.
+app = QtGui.QApplication(sys.argv, QtGui.QApplication.Tty)
 
 class TestHexView(unittest.TestCase):
 
 	def setUp(self):
-		self.view = sexton.HexView()
+		# This is run before each test_* method.
+		self.view = sexton.HexView(None, None, False)
 
 	def test_open_file(self):
 		data_buffer = TestBuffer(10000)

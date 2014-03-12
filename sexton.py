@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# Petter Strandmark 2013.
+# Petter Strandmark 2013–2014.
 
 import argparse
 import os
@@ -28,9 +28,9 @@ from modules.find_and_replace import FindAndReplace
 from modules.platform import create_platform
 
 # Used for saving settings (e.g. in the registry on Windows)
-company_name = 'Petter Strandmark'
+company_name  = 'Petter Strandmark'
 software_name = 'Sexton'
-__version__ = '4.0 alpha'
+__version__   = '4.0'
 
 
 class HexView(QtGui.QWidget):
@@ -38,8 +38,12 @@ class HexView(QtGui.QWidget):
 	HEX_RIGHT = object()
 	TEXT = object()
 
-	def __init__(self, parent=None, main_window=None):
-		super(HexView, self).__init__(parent)
+	def __init__(self, parent=None, main_window=None, have_gui=True):
+		if have_gui:
+			# Without an X server, we cannot create a QWidget.
+			super(HexView, self).__init__(parent)
+		self.have_gui = have_gui
+
 		self.main_window = main_window
 
 		self.line_height = 14.0
@@ -58,26 +62,31 @@ class HexView(QtGui.QWidget):
 		self.selection_start = -1
 		self.selection_end = -1
 
-		window_color = self.palette().window().color()
-		cursor_disabled_color = QColor()
-		cursor_disabled_color.setRedF(window_color.redF()     - 0.1)
-		cursor_disabled_color.setGreenF(window_color.greenF() - 0.1)
-		cursor_disabled_color.setBlueF(window_color.blueF()   - 0.1)
+		if have_gui:
+			window_color = self.palette().window().color()
+			cursor_disabled_color = QColor()
+			cursor_disabled_color.setRedF(window_color.redF()     - 0.1)
+			cursor_disabled_color.setGreenF(window_color.greenF() - 0.1)
+			cursor_disabled_color.setBlueF(window_color.blueF()   - 0.1)
 
-		self.cursor_color = QColor(255, 0, 0)
-		self.text_color   = QColor(0, 0, 0)
-		self.cursor_background_brush          = QBrush(QColor(255, 255, 1))
-		self.cursor_disabled_background_brush = QBrush(cursor_disabled_color)
-		self.selection_background_brush       = QBrush(QColor(180, 255, 180))
+			self.cursor_color = QColor(255, 0, 0)
+			self.text_color   = QColor(0, 0, 0)
+			self.cursor_background_brush          = QBrush(QColor(255, 255, 1))
+			self.cursor_disabled_background_brush = QBrush(cursor_disabled_color)
+			self.selection_background_brush       = QBrush(QColor(180, 255, 180))
 
-		# Accept key strokes.
-		self.setFocusPolicy(Qt.WheelFocus)
+			# Accept key strokes.
+			self.setFocusPolicy(Qt.WheelFocus)
 
-		# Accept drops.
-		self.setAcceptDrops(True)
+			# Accept drops.
+			self.setAcceptDrops(True)
 
-		# How to report errors.
-		#invoke_in_main_thread(self.main_window.report_error, "PetterS", "Title")
+			# How to report errors.
+			#invoke_in_main_thread(self.main_window.report_error, "PetterS", "Title")
+
+	def update(self):
+		if self.have_gui:
+			super(HexView, self).update()
 
 	def clear_selection(self):
 		self.selection_start = -1
@@ -100,7 +109,12 @@ class HexView(QtGui.QWidget):
 		self.update()
 
 	def number_of_lines_on_screen(self):
-		screen_height = self.height()
+		if self.have_gui:
+			screen_height = self.height()
+		else:
+			# If no GUI is available, 200 pixels is an acceptable
+			# height for testing.
+			screen_height = 200
 		return int(screen_height // self.line_height)
 
 	def number_of_rows(self):
